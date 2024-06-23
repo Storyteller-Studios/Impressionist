@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace Impressionist.Abstractions
+﻿namespace Impressionist.Abstractions
 {
     public class HSLColor
     {

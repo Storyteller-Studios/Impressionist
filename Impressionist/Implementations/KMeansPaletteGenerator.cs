@@ -13,31 +13,50 @@ namespace Impressionist.Shared.Implementations
         IThemeColorGenrator,
         IPaletteGenrator
     {
-        public Task<ThemeColorResult> CreateThemeColor(Dictionary<Vector3, int> sourceColor)
+        public Task<ThemeColorResult> CreateThemeColor(Dictionary<Vector3, int> sourceColor, bool ignoreWhite = false)
         {
+            var targetColor = sourceColor;
+            if (ignoreWhite && sourceColor.Count > 1)
+            {
+                var hsvColor = sourceColor.ToDictionary(t => t.Key.RGBVectorToHSVColor(), t => t.Value);
+                targetColor = hsvColor.Where(t => t.Key.S != 0 && t.Key.V != 100).ToDictionary(t => t.Key.HSVColorToRGBVector(), t => t.Value);
+            }
             var clusters = KMeansCluster(sourceColor, 1);
             var colorVector = clusters.First().OrderByDescending(t => t.Value).First().Key;
             var isDark = colorVector.RGBVectorToHSVColor().V <= 50f;
             return Task.FromResult(new ThemeColorResult(colorVector, isDark));
         }
 
-        public async Task<PaletteResult> CreatePalette(Dictionary<Vector3, int> sourceColor, int clusterCount)
+        public async Task<PaletteResult> CreatePalette(Dictionary<Vector3, int> sourceColor, int clusterCount, bool ignoreWhite = false)
         {
-            var colorResult = await CreateThemeColor(sourceColor);
-            var hsvColor = sourceColor.ToDictionary(t => t.Key.RGBVectorToHSVColor(), t => t.Value); ;
+            if (sourceColor.Count == 1)
+            {
+                ignoreWhite = false;
+            }
+            var colorResult = await CreateThemeColor(sourceColor, ignoreWhite);
+            var hsvColor = sourceColor.ToDictionary(t => t.Key.RGBVectorToHSVColor(), t => t.Value);
             var colorIsDark = colorResult.ColorIsDark;
             Dictionary<Vector3, int> targetColors = null;
             if (colorIsDark)
             {
                 targetColors = hsvColor.Where(t => t.Key.V < 50)
-                    .OrderByDescending(t=>t.Value)
+                    .OrderByDescending(t => t.Value)
                     .ToDictionary(t => t.Key.HSVColorToRGBVector(), t => t.Value);
             }
             else
             {
-                targetColors = hsvColor.Where(t => t.Key.V >= 50)
+                if (!ignoreWhite)
+                {
+                    targetColors = hsvColor.Where(t => t.Key.V >= 50)
                     .OrderByDescending(t => t.Value)
                     .ToDictionary(t => t.Key.HSVColorToRGBVector(), t => t.Value);
+                }
+                else
+                {
+                    targetColors = hsvColor.Where(t => t.Key.V >= 50 && t.Key.V < 100)
+                    .OrderByDescending(t => t.Value)
+                    .ToDictionary(t => t.Key.HSVColorToRGBVector(), t => t.Value);
+                }
             }
             var clusters = KMeansCluster(targetColors, clusterCount);
             var dominantColors = new List<Vector3>();
@@ -48,12 +67,12 @@ namespace Impressionist.Shared.Implementations
             }
             var result = new List<Vector3>();
             var count = dominantColors.Count;
-            for(int i=0; i < clusterCount; i++)
+            for (int i = 0; i < clusterCount; i++)
             {
                 // You know, it is always hard to fullfill a palette when you have no enough colors. So please forgive me when placing the same color over and over again.
                 result.Add(dominantColors[i % count]);
             }
-            return new PaletteResult(result, colorIsDark);
+            return new PaletteResult(result, colorIsDark, colorResult);
         }
         static List<Dictionary<Vector3, int>> KMeansCluster(Dictionary<Vector3, int> colors, int numClusters)
         {
@@ -66,7 +85,7 @@ namespace Impressionist.Shared.Implementations
             }
 
             // Select the initial cluster centers randomly
-            var centers = colors.Keys.OrderByDescending(t=>Guid.NewGuid()).Take(clusterCount).ToArray();
+            var centers = colors.Keys.OrderByDescending(t => Guid.NewGuid()).Take(clusterCount).ToArray();
             // Loop until the clusters stabilize
             var changed = true;
             while (changed)

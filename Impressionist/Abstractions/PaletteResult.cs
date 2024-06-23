@@ -7,10 +7,12 @@ namespace Impressionist.Abstractions
     {
         public List<Vector3> Palette { get; } = new List<Vector3>();
         public bool PaletteIsDark { get; }
-        internal PaletteResult(List<Vector3> palette, bool paletteIsDark)
+        public ThemeColorResult ThemeColor { get; }
+        internal PaletteResult(List<Vector3> palette, bool paletteIsDark, ThemeColorResult themeColor)
         {
             Palette = palette;
             PaletteIsDark = paletteIsDark;
+            ThemeColor = themeColor;
         }
     }
     public class ThemeColorResult

@@ -19,7 +19,7 @@ namespace Impressionist.Shared.Implementations
             if (ignoreWhite && sourceColor.Count > 1)
             {
                 var hsvColor = sourceColor.ToDictionary(t => t.Key.RGBVectorToHSVColor(), t => t.Value);
-                targetColor = hsvColor.Where(t => t.Key.S != 0 && t.Key.V != 100).ToDictionary(t => t.Key.HSVColorToRGBVector(), t => t.Value);
+                targetColor = hsvColor.Where(t => (t.Key.V != 100 || t.Key.S != 0)).ToDictionary(t => t.Key.HSVColorToRGBVector(), t => t.Value);
             }
             var clusters = KMeansCluster(sourceColor, 1);
             var colorVector = clusters.First().OrderByDescending(t => t.Value).First().Key;
@@ -53,7 +53,7 @@ namespace Impressionist.Shared.Implementations
                 }
                 else
                 {
-                    targetColors = hsvColor.Where(t => t.Key.V >= 50 && (t.Key.V < 100 && t.Key.S > 0))
+                    targetColors = hsvColor.Where(t => t.Key.V >= 50 && (t.Key.V != 100 || t.Key.S != 0))
                     .OrderByDescending(t => t.Value)
                     .ToDictionary(t => t.Key.HSVColorToRGBVector(), t => t.Value);
                 }

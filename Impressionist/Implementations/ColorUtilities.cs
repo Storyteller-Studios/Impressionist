@@ -186,4 +186,3 @@ namespace Impressionist.Implementations
         }
     }
 }
-

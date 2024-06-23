@@ -53,7 +53,7 @@ namespace Impressionist.Shared.Implementations
                 }
                 else
                 {
-                    targetColors = hsvColor.Where(t => t.Key.V >= 50 && t.Key.V < 100)
+                    targetColors = hsvColor.Where(t => t.Key.V >= 50 && (t.Key.V < 100 && t.Key.S > 0))
                     .OrderByDescending(t => t.Value)
                     .ToDictionary(t => t.Key.HSVColorToRGBVector(), t => t.Value);
                 }

@@ -1,4 +1,5 @@
-﻿using Impressionist.Abstractions;
+﻿using Colourful;
+using Impressionist.Abstractions;
 using System;
 using System.Numerics;
 
@@ -85,104 +86,22 @@ namespace Impressionist.Implementations
 
             return rgb;
         }
-        public static HSLColor RGBVectorToHSLColor(this Vector3 rgb)
+        internal static Vector3 RGBColorToRGBVector(this RGBColor color)
         {
-            var r = rgb.X;
-            var g = rgb.Y;
-            var b = rgb.Z;
-            var max = Math.Max(Math.Max(r, g), b);
-            var min = Math.Min(Math.Min(r, g), b);
-            var chroma = max - min;
-            float h1;
-
-            // ReSharper disable CompareOfFloatsByEqualityOperator
-            if (chroma == 0)
-            {
-                h1 = 0;
-            }
-            else if (max == r)
-            {
-                h1 = (g - b) / chroma % 6;
-            }
-            else if (max == g)
-            {
-                h1 = 2 + (b - r) / chroma;
-            }
-            else //if (max == b)
-            {
-                h1 = 4 + (r - g) / chroma;
-            }
-
-            var lightness = 0.5f * (max - min);
-            var saturation = chroma == 0 ? 0 : chroma / (1 - Math.Abs(2 * lightness - 1));
-            HSLColor ret = new HSLColor();
-            ret.H = 60 * h1;
-            ret.S = saturation;
-            ret.L = lightness;
-            return ret;
+            return new Vector3((float)color.R, (float)color.G, (float)color.B);
         }
-        public static Vector3 HSLColorToRGBVector(this HSLColor hsl)
+        internal static RGBColor RGBVectorToRGBColor(this Vector3 color)
         {
-            float v;
-            float r, g, b;
-            var h = hsl.H;
-            var sl = hsl.S;
-            var l = hsl.L;
-            r = l;   // default to gray
-            g = l;
-            b = l;
-            v = (l <= 0.5f) ? (l * (1.0f + sl)) : (l + sl - l * sl);
-            if (v > 0)
-            {
-                float m;
-                float sv;
-                int sextant;
-                float fract, vsf, mid1, mid2;
-                m = l + l - v;
-                sv = (v - m) / v;
-                h *= 6.0f;
-                sextant = (int)h;
-                fract = h - sextant;
-                vsf = v * sv * fract;
-                mid1 = m + vsf;
-                mid2 = v - vsf;
-                switch (sextant)
-                {
-                    case 0:
-                        r = v;
-                        g = mid1;
-                        b = m;
-                        break;
-                    case 1:
-                        r = mid2;
-                        g = v;
-                        b = m;
-                        break;
-                    case 2:
-                        r = m;
-                        g = v;
-                        b = mid1;
-                        break;
-                    case 3:
-                        r = m;
-                        g = mid2;
-                        b = v;
-                        break;
-                    case 4:
-                        r = mid1;
-                        g = m;
-                        b = v;
-                        break;
-
-                    case 5:
-                        r = v;
-                        g = m;
-                        b = mid2;
-                        break;
-                }
-            }
-            var rgb = new Vector3(r * 255f, g * 255f, b * 255f);
-            return rgb;
+            return new RGBColor(color.X, color.Y, color.Z);
         }
+        internal static Vector3 LABColorToLABVector(this LabColor color)
+        {
+            return new Vector3((float)color.L, (float)color.a, (float)color.b);
+        }
+        internal static LabColor LABVectorToLABColor(this Vector3 color)
+        {
+            return new LabColor(color.X, color.Y, color.Z);
+        }
+
     }
 }

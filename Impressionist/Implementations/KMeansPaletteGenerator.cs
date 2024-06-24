@@ -1,19 +1,21 @@
-﻿using Impressionist.Abstractions;
-using Impressionist.Implementations;
+﻿using Colourful;
+using Impressionist.Abstractions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using System.Threading.Tasks;
 
-namespace Impressionist.Shared.Implementations
+namespace Impressionist.Implementations
 {
     // I'm really appreciate wieslawsoltes's PaletteGenerator. Which make this project possible.
     public class KMeansPaletteGenerator :
         IThemeColorGenrator,
         IPaletteGenrator
     {
-        public Task<ThemeColorResult> CreateThemeColor(Dictionary<Vector3, int> sourceColor, bool ignoreWhite = false)
+        private IColorConverter<RGBColor, LabColor> _labColorConverter = new ConverterBuilder().FromRGB().ToLab().Build();
+        private IColorConverter<LabColor, RGBColor> _rgbColorConverter = new ConverterBuilder().FromLab().ToRGB().Build();
+        public Task<ThemeColorResult> CreateThemeColor(Dictionary<Vector3, int> sourceColor, bool ignoreWhite = false, bool toLab = false)
         {
             var targetColor = sourceColor;
             if (ignoreWhite && sourceColor.Count > 1)
@@ -21,19 +23,27 @@ namespace Impressionist.Shared.Implementations
                 var hsvColor = sourceColor.ToDictionary(t => t.Key.RGBVectorToHSVColor(), t => t.Value);
                 targetColor = hsvColor.Where(t => (t.Key.V != 100 || t.Key.S != 0)).ToDictionary(t => t.Key.HSVColorToRGBVector(), t => t.Value);
             }
-            var clusters = KMeansCluster(sourceColor, 1);
+            if (toLab)
+            {
+                targetColor = targetColor.ToDictionary(t => _labColorConverter.Convert(t.Key.RGBVectorToRGBColor()).LABColorToLABVector(), t => t.Value);
+            }
+            var clusters = KMeansCluster(targetColor, 1);
             var colorVector = clusters.First().OrderByDescending(t => t.Value).First().Key;
+            if (toLab)
+            {
+                colorVector = _rgbColorConverter.Convert(clusters.First().OrderByDescending(t => t.Value).First().Key.LABVectorToLABColor()).RGBColorToRGBVector();
+            }
             var isDark = colorVector.RGBVectorToHSVColor().V <= 50f;
             return Task.FromResult(new ThemeColorResult(colorVector, isDark));
         }
 
-        public async Task<PaletteResult> CreatePalette(Dictionary<Vector3, int> sourceColor, int clusterCount, bool ignoreWhite = false)
+        public async Task<PaletteResult> CreatePalette(Dictionary<Vector3, int> sourceColor, int clusterCount, bool ignoreWhite = false, bool toLab = false)
         {
             if (sourceColor.Count == 1)
             {
                 ignoreWhite = false;
             }
-            var colorResult = await CreateThemeColor(sourceColor, ignoreWhite);
+            var colorResult = await CreateThemeColor(sourceColor, ignoreWhite, toLab);
             var hsvColor = sourceColor.ToDictionary(t => t.Key.RGBVectorToHSVColor(), t => t.Value);
             var colorIsDark = colorResult.ColorIsDark;
             Dictionary<Vector3, int> targetColors = null;
@@ -58,11 +68,19 @@ namespace Impressionist.Shared.Implementations
                     .ToDictionary(t => t.Key.HSVColorToRGBVector(), t => t.Value);
                 }
             }
+            if (toLab)
+            {
+                targetColors = targetColors.ToDictionary(t => _labColorConverter.Convert(t.Key.RGBVectorToRGBColor()).LABColorToLABVector(), t => t.Value);
+            }
             var clusters = KMeansCluster(targetColors, clusterCount);
             var dominantColors = new List<Vector3>();
             foreach (var cluster in clusters)
             {
                 var representative = cluster.OrderByDescending(c => c.Value).First().Key;
+                if (toLab)
+                {
+                    representative = _rgbColorConverter.Convert(representative.LABVectorToLABColor()).RGBColorToRGBVector();
+                }
                 dominantColors.Add(representative);
             }
             var result = new List<Vector3>();

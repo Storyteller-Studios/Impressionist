@@ -17,16 +17,16 @@ namespace Impressionist.Implementations
         private IColorConverter<LabColor, RGBColor> _rgbColorConverter = new ConverterBuilder().FromLab().ToRGB().Build();
         public Task<ThemeColorResult> CreateThemeColor(Dictionary<Vector3, int> sourceColor, bool ignoreWhite = false, bool toLab = false)
         {
-            var targetColor = sourceColor;
+            var builder = sourceColor.AsEnumerable();
             if (ignoreWhite && sourceColor.Count > 1)
             {
-                var hsvColor = sourceColor.ToDictionary(t => t.Key.RGBVectorToHSVColor(), t => t.Value);
-                targetColor = hsvColor.Where(t => (t.Key.V != 100 || t.Key.S != 0)).ToDictionary(t => t.Key.HSVColorToRGBVector(), t => t.Value);
+                builder = builder.Where(t => t.Key.X != 255 || t.Key.Y != 255 || t.Key.Z != 255);
             }
             if (toLab)
             {
-                targetColor = targetColor.ToDictionary(t => _labColorConverter.Convert(t.Key.RGBVectorToRGBColor()).LABColorToLABVector(), t => t.Value);
+                builder = builder.Select(t=>new KeyValuePair<Vector3, int>(_labColorConverter.Convert(t.Key.RGBVectorToRGBColor()).LABColorToLABVector(),t.Value));
             }
+            var targetColor = builder.ToDictionary(t => t.Key, t => t.Value);
             var clusters = KMeansCluster(targetColor, 1);
             var colorVector = clusters.First().OrderByDescending(t => t.Value).First().Key;
             if (toLab)
@@ -44,34 +44,28 @@ namespace Impressionist.Implementations
                 ignoreWhite = false;
             }
             var colorResult = await CreateThemeColor(sourceColor, ignoreWhite, toLab);
-            var hsvColor = sourceColor.ToDictionary(t => t.Key.RGBVectorToHSVColor(), t => t.Value);
+            var builder = sourceColor.AsEnumerable();
             var colorIsDark = colorResult.ColorIsDark;
-            Dictionary<Vector3, int> targetColors = null;
             if (colorIsDark)
             {
-                targetColors = hsvColor.Where(t => t.Key.V < 50)
-                    .OrderByDescending(t => t.Value)
-                    .ToDictionary(t => t.Key.HSVColorToRGBVector(), t => t.Value);
+                builder = builder.Where(t => t.Key.RGBVectorToHSVColor().V < 50);
             }
             else
             {
                 if (!ignoreWhite)
                 {
-                    targetColors = hsvColor.Where(t => t.Key.V >= 50)
-                    .OrderByDescending(t => t.Value)
-                    .ToDictionary(t => t.Key.HSVColorToRGBVector(), t => t.Value);
+                    builder = builder.Where(t => t.Key.RGBVectorToHSVColor().V >= 50);
                 }
                 else
                 {
-                    targetColors = hsvColor.Where(t => t.Key.V >= 50 && (t.Key.V != 100 || t.Key.S != 0))
-                    .OrderByDescending(t => t.Value)
-                    .ToDictionary(t => t.Key.HSVColorToRGBVector(), t => t.Value);
+                    builder = builder.Where(t => t.Key.RGBVectorToHSVColor().V >= 50 && (t.Key.X != 255 || t.Key.Y != 255 || t.Key.Z != 255));
                 }
             }
             if (toLab)
             {
-                targetColors = targetColors.ToDictionary(t => _labColorConverter.Convert(t.Key.RGBVectorToRGBColor()).LABColorToLABVector(), t => t.Value);
+                builder = builder.Select(t => new KeyValuePair<Vector3, int>(_labColorConverter.Convert(t.Key.RGBVectorToRGBColor()).LABColorToLABVector(), t.Value));
             }
+            var targetColors = builder.ToDictionary(t => t.Key, t => t.Value);
             var clusters = KMeansCluster(targetColors, clusterCount);
             var dominantColors = new List<Vector3>();
             foreach (var cluster in clusters)
@@ -120,22 +114,22 @@ namespace Impressionist.Implementations
                 // Recompute the cluster centers
                 for (int i = 0; i < Math.Min(numClusters, clusterCount); i++)
                 {
-                    var sumR = 0f;
-                    var sumG = 0f;
-                    var sumB = 0f;
+                    var sumX = 0f;
+                    var sumY = 0f;
+                    var sumZ = 0f;
                     var count = 0f;
                     foreach (var color in clusters[i].Keys)
                     {
-                        sumR += color.X;
-                        sumG += color.Y;
-                        sumB += color.Z;
+                        sumX += color.X;
+                        sumY += color.Y;
+                        sumZ += color.Z;
                         count++;
                     }
 
-                    var r = (sumR / count);
-                    var g = (sumG / count);
-                    var b = (sumB / count);
-                    var newCenter = new Vector3(r, g, b);
+                    var x = (sumX / count);
+                    var y = (sumY / count);
+                    var z = (sumZ / count);
+                    var newCenter = new Vector3(x, y, z);
                     if (!newCenter.Equals(centers[i]))
                     {
                         centers[i] = newCenter;

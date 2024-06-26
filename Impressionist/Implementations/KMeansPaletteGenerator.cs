@@ -20,7 +20,7 @@ namespace Impressionist.Implementations
             var builder = sourceColor.AsEnumerable();
             if (ignoreWhite && sourceColor.Count > 1)
             {
-                builder = builder.Where(t => t.Key.X != 255 || t.Key.Y != 255 || t.Key.Z != 255);
+                builder = builder.Where(t => t.Key.X <= 250 || t.Key.Y <= 250 || t.Key.Z <= 250);
             }
             if (toLab)
             {
@@ -58,7 +58,7 @@ namespace Impressionist.Implementations
                 }
                 else
                 {
-                    builder = builder.Where(t => t.Key.RGBVectorToHSVColor().V >= 50 && (t.Key.X != 255 || t.Key.Y != 255 || t.Key.Z != 255));
+                    builder = builder.Where(t => t.Key.RGBVectorToHSVColor().V >= 50 && (t.Key.X <= 250 || t.Key.Y <= 250 || t.Key.Z <= 250));
                 }
             }
             if (toLab)

@@ -28,10 +28,10 @@ namespace Impressionist.Implementations
             }
             var targetColor = builder.ToDictionary(t => t.Key, t => t.Value);
             var clusters = KMeansCluster(targetColor, 1, false);
-            var colorVector = clusters.First().OrderByDescending(t => t.Value).First().Key;
+            var colorVector = clusters.First();
             if (toLab)
             {
-                colorVector = _rgbColorConverter.Convert(clusters.First().OrderByDescending(t => t.Value).First().Key.LABVectorToLABColor()).RGBColorToRGBVector();
+                colorVector = _rgbColorConverter.Convert(clusters.First().LABVectorToLABColor()).RGBColorToRGBVector();
             }
             var isDark = colorVector.RGBVectorToHSVColor().V <= 50f;
             return Task.FromResult(new ThemeColorResult(colorVector, isDark));
@@ -70,7 +70,7 @@ namespace Impressionist.Implementations
             var dominantColors = new List<Vector3>();
             foreach (var cluster in clusters)
             {
-                var representative = cluster.OrderByDescending(c => c.Value).First().Key;
+                var representative = cluster;
                 if (toLab)
                 {
                     representative = _rgbColorConverter.Convert(representative.LABVectorToLABColor()).RGBColorToRGBVector();
@@ -86,7 +86,7 @@ namespace Impressionist.Implementations
             }
             return new PaletteResult(result, colorIsDark, colorResult);
         }
-        static List<Dictionary<Vector3, int>> KMeansCluster(Dictionary<Vector3, int> colors, int numClusters, bool useKMeansPP)
+        static Vector3[] KMeansCluster(Dictionary<Vector3, int> colors, int numClusters, bool useKMeansPP)
         {
             // Initialize the clusters, reduces the total number when total colors is less than clusters
             var clusterCount = Math.Min(numClusters, colors.Count);
@@ -128,10 +128,10 @@ namespace Impressionist.Implementations
                     var count = 0f;
                     foreach (var color in clusters[i].Keys)
                     {
-                        sumX += color.X;
-                        sumY += color.Y;
-                        sumZ += color.Z;
-                        count++;
+                        sumX += color.X * colors[color];
+                        sumY += color.Y * colors[color];
+                        sumZ += color.Z * colors[color];
+                        count += colors[color];
                     }
 
                     var x = (sumX / count);
@@ -147,7 +147,7 @@ namespace Impressionist.Implementations
             }
 
             // Return the clusters
-            return clusters;
+            return centers;
         }
 
         static Vector3 FindNearestCenter(Vector3 color, Vector3[] centers)

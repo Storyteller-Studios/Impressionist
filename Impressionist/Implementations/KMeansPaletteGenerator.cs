@@ -48,17 +48,17 @@ namespace Impressionist.Implementations
             var colorIsDark = colorResult.ColorIsDark;
             if (colorIsDark)
             {
-                builder = builder.Where(t => t.Key.RGBVectorToHSVColor().V < 50);
+                builder = builder.Where(t => t.Key.RGBVectorToHSVColor().V < 65);
             }
             else
             {
                 if (!ignoreWhite)
                 {
-                    builder = builder.Where(t => t.Key.RGBVectorToHSVColor().V >= 50);
+                    builder = builder.Where(t => t.Key.RGBVectorToHSVColor().V >= 65);
                 }
                 else
                 {
-                    builder = builder.Where(t => t.Key.RGBVectorToHSVColor().V >= 50 && (t.Key.X <= 250 || t.Key.Y <= 250 || t.Key.Z <= 250));
+                    builder = builder.Where(t => t.Key.RGBVectorToHSVColor().V >= 65 && (t.Key.X <= 250 || t.Key.Y <= 250 || t.Key.Z <= 250));
                 }
             }
             if (toLab)

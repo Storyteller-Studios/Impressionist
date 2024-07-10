@@ -24,7 +24,7 @@ namespace Impressionist.Implementations
             }
             if (toLab)
             {
-                builder = builder.Select(t=>new KeyValuePair<Vector3, int>(_labColorConverter.Convert(t.Key.RGBVectorToRGBColor()).LABColorToLABVector(),t.Value));
+                builder = builder.Select(t => new KeyValuePair<Vector3, int>(_labColorConverter.Convert(t.Key.RGBVectorToRGBColor()).LABColorToLABVector(), t.Value));
             }
             var targetColor = builder.ToDictionary(t => t.Key, t => t.Value);
             var clusters = KMeansCluster(targetColor, 1, false);

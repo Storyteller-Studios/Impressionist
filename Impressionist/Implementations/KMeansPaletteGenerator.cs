@@ -42,6 +42,7 @@ namespace Impressionist.Implementations
             if (sourceColor.Count == 1)
             {
                 ignoreWhite = false;
+                useKMeansPP = false;
             }
             var colorResult = await CreateThemeColor(sourceColor, ignoreWhite, toLab);
             var builder = sourceColor.AsEnumerable();

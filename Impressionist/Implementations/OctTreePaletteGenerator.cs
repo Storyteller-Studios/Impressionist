@@ -226,9 +226,9 @@ namespace Impressionist.Implementations
             {
                 var totals = colors.Sum(c => c.Item2);
                 return new Vector3(
-                    x: colors.Sum(c => c.Item1.X * c.Item2) / totals,
-                    y: colors.Sum(c => c.Item1.Y * c.Item2) / totals,
-                    z: colors.Sum(c => c.Item1.Z * c.Item2) / totals);
+                    x: (int)colors.Sum(c => c.Item1.X * c.Item2) / totals,
+                    y: (int)colors.Sum(c => c.Item1.Y * c.Item2) / totals,
+                    z: (int)colors.Sum(c => c.Item1.Z * c.Item2) / totals);
             }
         }
     }

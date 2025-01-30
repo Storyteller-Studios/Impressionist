@@ -8,4 +8,4 @@ Impressionist is a color clustering project using K-Means or other algorithms.
 
 [tompazourek/Colourful](https://github.com/tompazourek/Colourful)
 
-[bwaacon/cSharpColourQuantization](https://github.com/bwaacon/cSharpColourQuantization)
+[bwaacon/cSharpColourQuantization](https://github.com/bacowan/cSharpColourQuantization)

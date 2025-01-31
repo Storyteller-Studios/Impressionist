@@ -1,13 +1,13 @@
-﻿using System;
+﻿using Impressionist.Abstractions;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
-using Impressionist.Abstractions;
 using System.Numerics;
+using System.Threading.Tasks;
 
 namespace Impressionist.Implementations
 {
-    public class OctTreePaletteGenerator:
+    public class OctTreePaletteGenerator :
         IThemeColorGenrator,
         IPaletteGenrator
     {
@@ -22,10 +22,7 @@ namespace Impressionist.Implementations
             var targetColor = builder.ToDictionary(t => t.Key, t => t.Value);
             foreach (var color in targetColor)
             {
-                for (var i = 0; i < color.Value; i++)
-                {
-                    quantizer.AddColor(color.Key);
-                }
+                quantizer.AddColorRange(color.Key, color.Value);
             }
             quantizer.Quantize(1);
             var index = new List<Vector3>() { targetColor.Keys.FirstOrDefault() };
@@ -55,13 +52,10 @@ namespace Impressionist.Implementations
             {
                 builder = builder.Where(t => t.Key.RGBVectorToHSVColor().V >= 65);
             }
-            var targetColor = builder.ToDictionary(t=>t.Key, t=>t.Value);
+            var targetColor = builder.ToDictionary(t => t.Key, t => t.Value);
             foreach (var color in targetColor)
             {
-                for (var i = 0; i < color.Value; i++) 
-                {
-                    quantizer.AddColor(color.Key);
-                }
+                quantizer.AddColorRange(color.Key, color.Value);
             }
             quantizer.Quantize(clusterCount);
             var index = targetColor.OrderByDescending(t => t.Value).Select(t => t.Key).ToList();
@@ -94,6 +88,11 @@ namespace Impressionist.Implementations
             public void AddColor(Vector3 color)
             {
                 Root.AddColor(color, 0);
+            }
+
+            public void AddColorRange(Vector3 color, int count)
+            {
+                Root.AddColorRange(color, 0, count);
             }
 
             public void AddLevelNode(Node node, int level)
@@ -154,7 +153,7 @@ namespace Impressionist.Implementations
             private readonly PaletteQuantizer parent;
             private Node[] Children = new Node[8];
             private Vector3 Color { get; set; }
-            private int Count { get; set; }
+            private int Count { get; set; } = 0;
 
             public int ChildrenCount => Children.Count(c => c != null);
 
@@ -180,6 +179,25 @@ namespace Impressionist.Implementations
                 {
                     Color = color;
                     Count++;
+                }
+            }
+            public void AddColorRange(Vector3 color, int level, int count)
+            {
+                if (level < 8)
+                {
+                    var index = GetIndex(color, level);
+                    if (Children[index] == null)
+                    {
+                        var newNode = new Node(parent);
+                        Children[index] = newNode;
+                        parent.AddLevelNode(newNode, level);
+                    }
+                    Children[index].AddColorRange(color, level + 1, count);
+                }
+                else
+                {
+                    Color = color;
+                    Count += count;
                 }
             }
 

@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace Impressionist.Implementations
+﻿namespace Impressionist.Implementations
 {
     public static class PaletteGenerators
     {

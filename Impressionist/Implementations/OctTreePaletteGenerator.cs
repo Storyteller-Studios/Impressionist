@@ -64,7 +64,7 @@ namespace Impressionist.Implementations
                 }
             }
             quantizer.Quantize(clusterCount);
-            var index = targetColor.Keys.ToList();
+            var index = targetColor.OrderByDescending(t => t.Value).Select(t => t.Key).ToList();
             var quantizeResult = quantizer.GetResult(index);
             var result = new List<Vector3>();
             var count = quantizeResult.Count;

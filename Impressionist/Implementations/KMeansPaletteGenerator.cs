@@ -33,7 +33,7 @@ namespace Impressionist.Implementations
             {
                 colorVector = _rgbColorConverter.Convert(clusters.First().LABVectorToLABColor()).RGBColorToRGBVector();
             }
-            var isDark = colorVector.RGBVectorToHSVColor().V <= 50f;
+            var isDark = colorVector.RGBVectorToHSVColor().GammaColorIsDark();
             return Task.FromResult(new ThemeColorResult(colorVector, isDark));
         }
 

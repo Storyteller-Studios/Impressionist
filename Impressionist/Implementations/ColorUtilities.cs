@@ -103,5 +103,58 @@ namespace Impressionist.Implementations
             return new LabColor(color.X, color.Y, color.Z);
         }
 
+        internal static float A = 0.17883277f;
+        internal static float B = 0.28466892f;
+        internal static float C = 0.55991073f;
+        internal static float HLGGap = 1000f / 12f;
+        internal static float HLGFunction1(float s)
+        {
+            return 0.5f * (float)Math.Sqrt(12f * s);
+        }
+        internal static float HLGFunction2(float s)
+        {
+            return (float)(A * Math.Log(12f * s - B)) + C;
+        }
+
+        public static bool HLGColorIsDark(this HSVColor color)
+        {
+            if (color.V < 65) return true;
+            var s = color.S;
+            if (s * 10 <= HLGGap)
+            {
+                var targetV = HLGFunction1(s / 100);
+                return color.V / 100f < targetV;
+            }
+            else
+            {
+                var targetV = HLGFunction2(s / 100);
+                return color.V / 100f < targetV;
+            }
+        }
+
+        internal static float GammaGap = 0.018f;
+        internal static float GammaFunction1(float s) 
+        {
+            return 4.5f * s;
+        }
+        internal static float GammaFunction2(float s)
+        {
+            return(float)(1.099 * Math.Pow(s,0.45) - 0.099);
+        }
+        public static bool GammaColorIsDark(this HSVColor color)
+        {
+            if (color.V < 65) return true;
+            var s = color.S / 100;
+            if (s <= GammaGap)
+            {
+                var targetV = GammaFunction1(s);
+                return color.V / 100f < targetV;
+            }
+            else
+            {
+                var targetV = GammaFunction2(s);
+                return color.V / 100f < targetV;
+            }
+        }
     }
 }

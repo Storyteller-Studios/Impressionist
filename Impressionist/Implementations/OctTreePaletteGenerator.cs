@@ -27,7 +27,7 @@ namespace Impressionist.Implementations
             quantizer.Quantize(1);
             var index = new List<Vector3>() { targetColor.Keys.FirstOrDefault() };
             var result = quantizer.GetResult(index).FirstOrDefault();
-            var colorIsDark = result.RGBVectorToHSVColor().V <= 50f;
+            var colorIsDark = result.RGBVectorToHSVColor().GammaColorIsDark();
             return Task.FromResult(new ThemeColorResult(result, colorIsDark));
         }
         public async Task<PaletteResult> CreatePalette(Dictionary<Vector3, int> sourceColor, int clusterCount, bool ignoreWhite = false)

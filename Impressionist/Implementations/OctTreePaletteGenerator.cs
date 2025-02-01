@@ -58,14 +58,30 @@ namespace Impressionist.Implementations
                 quantizer.AddColorRange(color.Key, color.Value);
             }
             quantizer.Quantize(clusterCount);
-            var index = targetColor.OrderByDescending(t => t.Value).Select(t => t.Key).ToList();
-            var quantizeResult = quantizer.GetResult(index);
-            var result = new List<Vector3>();
-            var count = quantizeResult.Count;
-            for (int i = 0; i < clusterCount; i++)
+            var index = targetColor.Keys.ToList();
+            List<Vector3> quantizeResult;
+            if (colorIsDark)
             {
-                // You know, it is always hard to fullfill a palette when you have no enough colors. So please forgive me when placing the same color over and over again.
-                result.Add(quantizeResult[i % count]);
+                quantizeResult = quantizer.GetResult(index).OrderBy(t => t.LengthSquared()).Take(clusterCount).ToList();
+            }
+            else
+            {
+                quantizeResult = quantizer.GetResult(index).OrderByDescending(t => t.LengthSquared()).Take(clusterCount).ToList();
+            }
+            List<Vector3> result;
+            if (quantizeResult.Count < clusterCount)
+            {
+                var count = quantizeResult.Count;
+                result = new List<Vector3>();
+                for (int i = 0; i < clusterCount; i++)
+                {
+                    // You know, it is always hard to fullfill a palette when you have no enough colors. So please forgive me when placing the same color over and over again.
+                    result.Add(quantizeResult[i % count]);
+                }
+            }
+            else
+            {
+                result = quantizeResult;
             }
             return new PaletteResult(result, colorIsDark, colorResult);
         }

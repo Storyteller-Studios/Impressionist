@@ -134,9 +134,9 @@ namespace Impressionist.Implementations
                     Clinear[2] * 255.0)))
                 );
         }
-        private static float D65X = 95.04f;
-        private static float D65Y = 100.00f;
-        private static float D65Z = 108.89f;
+        private static float D65X = 950.4f;
+        private static float D65Y = 1000f;
+        private static float D65Z = 1088.9f;
         private static float Fxyz(float t)
         {
             return ((t > 0.008856) ? (float)Math.Pow(t, (1.0 / 3.0)) : (7.787f * t + 16.0f / 116.0f));

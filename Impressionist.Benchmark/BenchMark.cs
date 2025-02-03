@@ -11,7 +11,6 @@ namespace Impressionist.Benchmark
     {
         public List<string> fileName = new List<string>()
         {
-            "1.jpg"
         };
         public List<Dictionary<Vector3, int>> imageData = new List<Dictionary<Vector3, int>>();
         [Benchmark]

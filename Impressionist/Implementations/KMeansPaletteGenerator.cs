@@ -13,8 +13,6 @@ namespace Impressionist.Implementations
         IThemeColorGenrator,
         IPaletteGenrator
     {
-        private IColorConverter<RGBColor, LabColor> _labColorConverter = new ConverterBuilder().FromRGB().ToLab().Build();
-        private IColorConverter<LabColor, RGBColor> _rgbColorConverter = new ConverterBuilder().FromLab().ToRGB().Build();
         public Task<ThemeColorResult> CreateThemeColor(Dictionary<Vector3, int> sourceColor, bool ignoreWhite = false, bool toLab = false)
         {
             var builder = sourceColor.AsEnumerable();
@@ -24,16 +22,16 @@ namespace Impressionist.Implementations
             }
             if (toLab)
             {
-                builder = builder.Select(t => new KeyValuePair<Vector3, int>(_labColorConverter.Convert(t.Key.RGBVectorToRGBColor()).LABColorToLABVector(), t.Value));
+                builder = builder.Select(t => new KeyValuePair<Vector3, int>(t.Key, t.Value));
             }
             var targetColor = builder.ToDictionary(t => t.Key, t => t.Value);
             var clusters = KMeansCluster(targetColor, 1, false);
             var colorVector = clusters.First();
             if (toLab)
             {
-                colorVector = _rgbColorConverter.Convert(clusters.First().LABVectorToLABColor()).RGBColorToRGBVector();
+                colorVector = clusters.First().LABVectorToRGBVector();
             }
-            var isDark = colorVector.RGBVectorToHSVColor().GammaColorIsDark();
+            var isDark = colorVector.RGBVectorToHSVColor().sRGBColorIsDark();
             return Task.FromResult(new ThemeColorResult(colorVector, isDark));
         }
 
@@ -49,22 +47,22 @@ namespace Impressionist.Implementations
             var colorIsDark = colorResult.ColorIsDark;
             if (colorIsDark)
             {
-                builder = builder.Where(t => t.Key.RGBVectorToHSVColor().V < 65);
+                builder = builder.Where(t => t.Key.RGBVectorToHSVColor().sRGBColorIsDark());
             }
             else
             {
                 if (!ignoreWhite)
                 {
-                    builder = builder.Where(t => t.Key.RGBVectorToHSVColor().V >= 65);
+                    builder = builder.Where(t => !t.Key.RGBVectorToHSVColor().sRGBColorIsDark());
                 }
                 else
                 {
-                    builder = builder.Where(t => t.Key.RGBVectorToHSVColor().V >= 65 && (t.Key.X <= 250 || t.Key.Y <= 250 || t.Key.Z <= 250));
+                    builder = builder.Where(t => !t.Key.RGBVectorToHSVColor().sRGBColorIsDark() && (t.Key.X <= 250 || t.Key.Y <= 250 || t.Key.Z <= 250));
                 }
             }
             if (toLab)
             {
-                builder = builder.Select(t => new KeyValuePair<Vector3, int>(_labColorConverter.Convert(t.Key.RGBVectorToRGBColor()).LABColorToLABVector(), t.Value));
+                builder = builder.Select(t => new KeyValuePair<Vector3, int>(t.Key.RGBVectorToLABVector(), t.Value));
             }
             var targetColors = builder.ToDictionary(t => t.Key, t => t.Value);
             var clusters = KMeansCluster(targetColors, clusterCount, useKMeansPP);
@@ -74,7 +72,7 @@ namespace Impressionist.Implementations
                 var representative = cluster;
                 if (toLab)
                 {
-                    representative = _rgbColorConverter.Convert(representative.LABVectorToLABColor()).RGBColorToRGBVector();
+                    representative = representative.LABVectorToRGBVector();
                 }
                 dominantColors.Add(representative);
             }

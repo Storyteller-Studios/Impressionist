@@ -26,8 +26,8 @@ namespace Impressionist.Implementations
             }
             quantizer.Quantize(1);
             var index = new List<Vector3>() { targetColor.Keys.FirstOrDefault() };
-            var result = quantizer.GetResult(index).FirstOrDefault();
-            var colorIsDark = result.RGBVectorToHSVColor().GammaColorIsDark();
+            var result = quantizer.GetThemeResult();
+            var colorIsDark = result.RGBVectorToHSVColor().sRGBColorIsDark();
             return Task.FromResult(new ThemeColorResult(result, colorIsDark));
         }
         public async Task<PaletteResult> CreatePalette(Dictionary<Vector3, int> sourceColor, int clusterCount, bool ignoreWhite = false)
@@ -46,11 +46,11 @@ namespace Impressionist.Implementations
             var colorIsDark = colorResult.ColorIsDark;
             if (colorIsDark)
             {
-                builder = builder.Where(t => t.Key.RGBVectorToHSVColor().V < 65);
+                builder = builder.Where(t => t.Key.RGBVectorToHSVColor().sRGBColorIsDark());
             }
             else
             {
-                builder = builder.Where(t => t.Key.RGBVectorToHSVColor().V >= 65);
+                builder = builder.Where(t => !t.Key.RGBVectorToHSVColor().sRGBColorIsDark());
             }
             var targetColor = builder.ToDictionary(t => t.Key, t => t.Value);
             foreach (var color in targetColor)
@@ -62,11 +62,11 @@ namespace Impressionist.Implementations
             List<Vector3> quantizeResult;
             if (colorIsDark)
             {
-                quantizeResult = quantizer.GetResult(index).OrderBy(t => t.LengthSquared()).Take(clusterCount).ToList();
+                quantizeResult = quantizer.GetPaletteResult().OrderBy(t => t.LengthSquared()).Take(clusterCount).ToList();
             }
             else
             {
-                quantizeResult = quantizer.GetResult(index).OrderByDescending(t => t.LengthSquared()).Take(clusterCount).ToList();
+                quantizeResult = quantizer.GetPaletteResult().OrderByDescending(t => t.LengthSquared()).Take(clusterCount).ToList();
             }
             List<Vector3> result;
             if (quantizeResult.Count < clusterCount)
@@ -116,20 +116,14 @@ namespace Impressionist.Implementations
                 levelNodes[level].Add(node);
             }
 
-            public List<Vector3> GetResult(IEnumerable<Vector3> colors)
+            public List<Vector3> GetPaletteResult()
             {
-                var result = new List<Vector3>();
-                foreach (var item in colors)
-                {
-                    var color = Root.GetColor(item, 0);
-                    if (!result.Contains(color))
-                    {
-                        result.Add(color);
-                    }
-                }
-                return result;
+                return Root.GetPaletteResult().Keys.ToList();
             }
-
+            public Vector3 GetThemeResult()
+            {
+                return Root.GetThemeResult();
+            }
             public void Quantize(int colorCount)
             {
                 var nodesToRemove = levelNodes[7].Count - colorCount;
@@ -229,7 +223,48 @@ namespace Impressionist.Implementations
                     return Children[index].GetColor(color, level + 1);
                 }
             }
-
+            public Vector3 GetThemeResult()
+            {
+                var paletteResult = GetPaletteResult();
+                var sum = new Vector3(0, 0, 0);
+                var count = 0;
+                foreach(var item in paletteResult)
+                {
+                    sum += item.Key * item.Value;
+                    count += item.Value;
+                }
+                return sum / count;
+            }
+            public Dictionary<Vector3,int> GetPaletteResult()
+            {
+                var result = new Dictionary<Vector3, int>();
+                if (!Children.Any(t=>t!=null)) result[Color] = Count;
+                else
+                {
+                    foreach (var child in Children)
+                    {
+                        if(child != null)
+                        {
+                            child.NodeGetResult(result);
+                        }
+                    }
+                }
+                return result;
+            }
+            private void NodeGetResult(Dictionary<Vector3, int> result)
+            {
+                if (!Children.Any(t => t != null)) result[Color] = Count;
+                else
+                {
+                    foreach (var child in Children)
+                    {
+                        if (child != null)
+                        {
+                            child.NodeGetResult(result);
+                        }
+                    }
+                }
+            }
             private byte GetIndex(Vector3 color, int level)
             {
                 byte ret = 0;

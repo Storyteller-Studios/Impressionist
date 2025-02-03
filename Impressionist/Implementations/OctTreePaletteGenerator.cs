@@ -228,22 +228,22 @@ namespace Impressionist.Implementations
                 var paletteResult = GetPaletteResult();
                 var sum = new Vector3(0, 0, 0);
                 var count = 0;
-                foreach(var item in paletteResult)
+                foreach (var item in paletteResult)
                 {
                     sum += item.Key * item.Value;
                     count += item.Value;
                 }
                 return sum / count;
             }
-            public Dictionary<Vector3,int> GetPaletteResult()
+            public Dictionary<Vector3, int> GetPaletteResult()
             {
                 var result = new Dictionary<Vector3, int>();
-                if (!Children.Any(t=>t!=null)) result[Color] = Count;
+                if (!Children.Any(t => t != null)) result[Color] = Count;
                 else
                 {
                     foreach (var child in Children)
                     {
-                        if(child != null)
+                        if (child != null)
                         {
                             child.NodeGetResult(result);
                         }

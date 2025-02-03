@@ -1,5 +1,4 @@
-﻿using Colourful;
-using Impressionist.Abstractions;
+﻿using Impressionist.Abstractions;
 using System;
 using System.Collections.Generic;
 using System.Linq;

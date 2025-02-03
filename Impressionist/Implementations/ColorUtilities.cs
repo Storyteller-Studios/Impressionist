@@ -1,7 +1,5 @@
-﻿using Colourful;
-using Impressionist.Abstractions;
+﻿using Impressionist.Abstractions;
 using System;
-using System.Diagnostics;
 using System.Numerics;
 
 namespace Impressionist.Implementations
@@ -89,7 +87,7 @@ namespace Impressionist.Implementations
         }
         public static Vector3 RGBVectorToXYZVector(this Vector3 rgb)
         {
-            var red = rgb.X; 
+            var red = rgb.X;
             var green = rgb.Y;
             var blue = rgb.Z;
             // normalize red, green, blue values
@@ -98,9 +96,9 @@ namespace Impressionist.Implementations
             float bLinear = blue / 255.0f;
 
             // convert to a sRGB form
-            float r = (rLinear > 0.04045) ? (float)Math.Pow((rLinear + 0.055) / ( 1 + 0.055), 2.2) : (float)(rLinear / 12.92);
-            float g = (gLinear > 0.04045) ? (float)Math.Pow((gLinear + 0.055) / ( 1 + 0.055), 2.2) : (float)(gLinear / 12.92);
-            float b = (bLinear > 0.04045) ? (float)Math.Pow((bLinear + 0.055) / ( 1 + 0.055), 2.2) : (float)(bLinear / 12.92);
+            float r = (rLinear > 0.04045) ? (float)Math.Pow((rLinear + 0.055) / (1 + 0.055), 2.2) : (float)(rLinear / 12.92);
+            float g = (gLinear > 0.04045) ? (float)Math.Pow((gLinear + 0.055) / (1 + 0.055), 2.2) : (float)(gLinear / 12.92);
+            float b = (bLinear > 0.04045) ? (float)Math.Pow((bLinear + 0.055) / (1 + 0.055), 2.2) : (float)(bLinear / 12.92);
 
             // converts
             return new Vector3(
@@ -211,13 +209,13 @@ namespace Impressionist.Implementations
         }
 
         internal static float BT709Gap = 0.018f;
-        internal static float BT709Function1(float s) 
+        internal static float BT709Function1(float s)
         {
             return 4.5f * s;
         }
         internal static float BT709Function2(float s)
         {
-            return(float)(1.099 * Math.Pow(s,0.45) - 0.099);
+            return (float)(1.099 * Math.Pow(s, 0.45) - 0.099);
         }
         public static bool BT709ColorIsDark(this HSVColor color)
         {

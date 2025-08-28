@@ -27,7 +27,7 @@ namespace Impressionist.Implementations
             quantizer.Quantize(1);
             var index = new List<Vector3>() { targetColor.Keys.FirstOrDefault() };
             var result = quantizer.GetThemeResult();
-            var colorIsDark = result.RGBVectorToHSVColor().sRGBColorIsDark();
+            var colorIsDark = result.RGBVectorLStarIsDark();
             return Task.FromResult(new ThemeColorResult(result, colorIsDark));
         }
         public async Task<PaletteResult> CreatePalette(Dictionary<Vector3, int> sourceColor, int clusterCount, bool ignoreWhite = false)
@@ -46,11 +46,11 @@ namespace Impressionist.Implementations
             var colorIsDark = colorResult.ColorIsDark;
             if (colorIsDark)
             {
-                builder = builder.Where(t => t.Key.RGBVectorToHSVColor().sRGBColorIsDark());
+                builder = builder.Where(t => t.Key.RGBVectorLStarIsDark());
             }
             else
             {
-                builder = builder.Where(t => !t.Key.RGBVectorToHSVColor().sRGBColorIsDark());
+                builder = builder.Where(t => !t.Key.RGBVectorLStarIsDark());
             }
             var targetColor = builder.ToDictionary(t => t.Key, t => t.Value);
             foreach (var color in targetColor)

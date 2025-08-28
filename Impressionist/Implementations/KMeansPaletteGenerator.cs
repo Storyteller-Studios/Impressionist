@@ -30,7 +30,7 @@ namespace Impressionist.Implementations
             {
                 colorVector = clusters.First().LABVectorToRGBVector();
             }
-            var isDark = colorVector.RGBVectorToHSVColor().sRGBColorIsDark();
+            var isDark = colorVector.RGBVectorLStarIsDark();
             return Task.FromResult(new ThemeColorResult(colorVector, isDark));
         }
 
@@ -46,17 +46,17 @@ namespace Impressionist.Implementations
             var colorIsDark = colorResult.ColorIsDark;
             if (colorIsDark)
             {
-                builder = builder.Where(t => t.Key.RGBVectorToHSVColor().sRGBColorIsDark());
+                builder = builder.Where(t => t.Key.RGBVectorLStarIsDark());
             }
             else
             {
                 if (!ignoreWhite)
                 {
-                    builder = builder.Where(t => !t.Key.RGBVectorToHSVColor().sRGBColorIsDark());
+                    builder = builder.Where(t => !t.Key.RGBVectorLStarIsDark());
                 }
                 else
                 {
-                    builder = builder.Where(t => !t.Key.RGBVectorToHSVColor().sRGBColorIsDark() && (t.Key.X <= 250 || t.Key.Y <= 250 || t.Key.Z <= 250));
+                    builder = builder.Where(t => !t.Key.RGBVectorLStarIsDark() && (t.Key.X <= 250 || t.Key.Y <= 250 || t.Key.Z <= 250));
                 }
             }
             if (toLab)

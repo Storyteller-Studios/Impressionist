@@ -62,11 +62,11 @@ namespace Impressionist.Implementations
             List<Vector3> quantizeResult;
             if (colorIsDark)
             {
-                quantizeResult = quantizer.GetPaletteResult().OrderBy(t => t.LengthSquared()).Take(clusterCount).ToList();
+                quantizeResult = quantizer.GetPaletteResult(clusterCount);
             }
             else
             {
-                quantizeResult = quantizer.GetPaletteResult().OrderByDescending(t => t.LengthSquared()).Take(clusterCount).ToList();
+                quantizeResult = quantizer.GetPaletteResult(clusterCount);
             }
             List<Vector3> result;
             if (quantizeResult.Count < clusterCount)
@@ -119,6 +119,10 @@ namespace Impressionist.Implementations
             public List<Vector3> GetPaletteResult()
             {
                 return Root.GetPaletteResult().Keys.ToList();
+            }
+            public List<Vector3> GetPaletteResult(int count)
+            {
+                return Root.GetPaletteResult().OrderByDescending(t=>t.Value).Take(count).Select(t=>t.Key).ToList();
             }
             public Vector3 GetThemeResult()
             {

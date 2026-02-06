@@ -122,7 +122,7 @@ namespace Impressionist.Implementations
             }
             public List<Vector3> GetPaletteResult(int count)
             {
-                return Root.GetPaletteResult().OrderByDescending(t=>t.Value).Take(count).Select(t=>t.Key).ToList();
+                return Root.GetPaletteResult().OrderByDescending(t => t.Value).Take(count).Select(t => t.Key).ToList();
             }
             public Vector3 GetThemeResult()
             {

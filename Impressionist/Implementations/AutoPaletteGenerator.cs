@@ -20,7 +20,9 @@ namespace Impressionist.Implementations
                 kMeansCentralPoint += vector;
             }
             kMeansCentralPoint /= clusterCount;
-            var distances = vectors.Select(t => Vector3.DistanceSquared(t, kMeansCentralPoint)).ToList();
+            var distances = vectors.Select(t => Vector3.Distance(t, kMeansCentralPoint)).ToList();
+            var asdf1 = kmeansResult.Palette.Select(t => t.RGBVectorToLABVector()).ToList();
+            var asdf2 = asdf1.Select(t => t.LABVectorToRGBVector()).ToList();
             var avg = distances.Average();
             var sum = distances.Sum(d => Math.Pow(d - avg, 2));
             var kMeansVariance = sum / clusterCount;
@@ -31,11 +33,11 @@ namespace Impressionist.Implementations
                 octTreeCentralPoint += vector;
             }
             octTreeCentralPoint /= clusterCount;
-            distances = vectors.Select(t => Vector3.DistanceSquared(t, octTreeCentralPoint)).ToList();
+            distances = vectors.Select(t => Vector3.Distance(t, octTreeCentralPoint)).ToList();
             avg = distances.Average();
             sum = distances.Sum(d => Math.Pow(d - avg, 2));
             var octTreeVariance = sum / clusterCount;
-            if (kMeansVariance > octTreeVariance)
+          if (kMeansVariance > octTreeVariance)
             {
                 return kmeansResult;
             }

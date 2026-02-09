@@ -91,16 +91,9 @@ namespace Impressionist.Implementations
             var green = rgb.Y;
             var blue = rgb.Z;
             // normalize red, green, blue values
-            float rLinear = red / 255.0f;
-            float gLinear = green / 255.0f;
-            float bLinear = blue / 255.0f;
-
-            // convert to a sRGB form
-            float r = (rLinear > 0.04045) ? (float)Math.Pow((rLinear + 0.055) / (1 + 0.055), 2.2) : (float)(rLinear / 12.92);
-            float g = (gLinear > 0.04045) ? (float)Math.Pow((gLinear + 0.055) / (1 + 0.055), 2.2) : (float)(gLinear / 12.92);
-            float b = (bLinear > 0.04045) ? (float)Math.Pow((bLinear + 0.055) / (1 + 0.055), 2.2) : (float)(bLinear / 12.92);
-
-            // converts
+            float r = red / 255.0f;
+            float g = green / 255.0f;
+            float b = blue / 255.0f;
             return new Vector3(
                 (r * 0.4124f + g * 0.3576f + b * 0.1805f),
                 (r * 0.2126f + g * 0.7152f + b * 0.0722f),
@@ -113,28 +106,14 @@ namespace Impressionist.Implementations
             var y = xyz.Y;
             var z = xyz.Z;
             float[] Clinear = new float[3];
-            Clinear[0] = x * 3.2410f - y * 1.5374f - z * 0.4986f; // red
-            Clinear[1] = -x * 0.9692f + y * 1.8760f - z * 0.0416f; // green
-            Clinear[2] = x * 0.0556f - y * 0.2040f + z * 1.0570f; // blue
-
-            for (int i = 0; i < 3; i++)
-            {
-                Clinear[i] = (Clinear[i] <= 0.0031308) ? 12.92f * Clinear[i] : (float)((
-                    1 + 0.055) * Math.Pow(Clinear[i], (1.0 / 2.4)) - 0.055);
-            }
-
-            return new Vector3(
-                Convert.ToInt32(float.Parse(string.Format("{0:0.00}",
-                    Clinear[0] * 255.0))),
-                Convert.ToInt32(float.Parse(string.Format("{0:0.00}",
-                    Clinear[1] * 255.0))),
-                Convert.ToInt32(float.Parse(string.Format("{0:0.00}",
-                    Clinear[2] * 255.0)))
-                );
+            Clinear[0] = x * 3.2406f - y * 1.5372f - z * 0.4986f; // red
+            Clinear[1] = -x * 0.9689f + y * 1.8758f + z * 0.0415f; // green
+            Clinear[2] = x * 0.0557f - y * 0.2040f + z * 1.0570f; // blue
+            return new Vector3(Clinear[0] * 255.0f, Clinear[1] * 255.0f, Clinear[2] * 255.0f);
         }
-        private static float D65X = 0.9505f;
-        private static float D65Y = 1f;
-        private static float D65Z = 1.089f;
+        private const float D65X = 0.95047f;
+        private const float D65Y = 1f;
+        private const float D65Z = 1.0883f;
         private static float Fxyz(float t)
         {
             return ((t > 0.008856) ? (float)Math.Pow(t, (1.0 / 3.0)) : (7.787f * t + 16.0f / 116.0f));

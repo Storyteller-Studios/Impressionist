@@ -35,7 +35,7 @@ namespace Impressionist.Implementations
             avg = distances.Average();
             sum = distances.Sum(d => Math.Pow(d - avg, 2));
             var octTreeVariance = sum / clusterCount;
-          if (kMeansVariance > octTreeVariance)
+          if (kMeansVariance < octTreeVariance)
             {
                 return kmeansResult;
             }

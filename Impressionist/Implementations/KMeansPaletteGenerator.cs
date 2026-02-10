@@ -46,17 +46,17 @@ namespace Impressionist.Implementations
             var colorIsDark = colorResult.ColorIsDark;
             if (colorIsDark)
             {
-                builder = builder.Where(t => t.Key.RGBVectorLStarIsDark());
+                builder = builder.Where(t => t.Key.PaletteRGBVectorLStarIsDark());
             }
             else
             {
                 if (!ignoreWhite)
                 {
-                    builder = builder.Where(t => !t.Key.RGBVectorLStarIsDark());
+                    builder = builder.Where(t => t.Key.PaletteRGBVectorLStarIsLight());
                 }
                 else
                 {
-                    builder = builder.Where(t => !t.Key.RGBVectorLStarIsDark() && (t.Key.X <= 250 || t.Key.Y <= 250 || t.Key.Z <= 250));
+                    builder = builder.Where(t => t.Key.PaletteRGBVectorLStarIsLight() && (t.Key.X <= 250 || t.Key.Y <= 250 || t.Key.Z <= 250));
                 }
             }
             if (toLab)

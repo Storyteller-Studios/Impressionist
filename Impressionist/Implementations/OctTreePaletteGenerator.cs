@@ -46,11 +46,11 @@ namespace Impressionist.Implementations
             var colorIsDark = colorResult.ColorIsDark;
             if (colorIsDark)
             {
-                builder = builder.Where(t => t.Key.RGBVectorLStarIsDark());
+                builder = builder.Where(t => t.Key.PaletteRGBVectorLStarIsDark());
             }
             else
             {
-                builder = builder.Where(t => !t.Key.RGBVectorLStarIsDark());
+                builder = builder.Where(t => t.Key.PaletteRGBVectorLStarIsLight());
             }
             var targetColor = builder.ToDictionary(t => t.Key, t => t.Value);
             foreach (var color in targetColor)

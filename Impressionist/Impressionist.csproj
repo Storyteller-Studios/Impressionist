@@ -4,6 +4,7 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <IsPublishable>False</IsPublishable>
     <Platforms>AnyCPU;x64</Platforms>
+	<RuntimeIdentifiers>win-arm64;win-x64</RuntimeIdentifiers>
   </PropertyGroup>
 
   <ItemGroup>

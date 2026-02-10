@@ -21,8 +21,6 @@ namespace Impressionist.Implementations
             }
             kMeansCentralPoint /= clusterCount;
             var distances = vectors.Select(t => Vector3.Distance(t, kMeansCentralPoint)).ToList();
-            var asdf1 = kmeansResult.Palette.Select(t => t.RGBVectorToLABVector()).ToList();
-            var asdf2 = asdf1.Select(t => t.LABVectorToRGBVector()).ToList();
             var avg = distances.Average();
             var sum = distances.Sum(d => Math.Pow(d - avg, 2));
             var kMeansVariance = sum / clusterCount;

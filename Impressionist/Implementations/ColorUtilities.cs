@@ -157,7 +157,7 @@ namespace Impressionist.Implementations
         {
             return lab.LABVectorToXYZVector().XYZVectorToRGBVector();
         }
-            
+
         public static bool PaletteRGBVectorLStarIsDark(this Vector3 rgb)
         {
             var limitedColor = rgb / 255f;
@@ -170,7 +170,7 @@ namespace Impressionist.Implementations
             var limitedColor = rgb / 255f;
             var y = 0.2126f * ChannelToLin(limitedColor.X) + 0.7152f * ChannelToLin(limitedColor.Y) + 0.0722f * ChannelToLin(limitedColor.Z);
             var lStar = YToLStar(y);
-            return lStar >=60;
+            return lStar >= 60;
         }
         public static bool RGBVectorLStarIsDark(this Vector3 rgb)
         {

@@ -106,9 +106,17 @@ namespace Impressionist.Implementations
             }
             // Loop until the clusters stabilize
             var changed = true;
-            while (changed)
+            int iterations = 0;
+            while (changed && iterations < 250)
             {
                 changed = false;
+                iterations++;
+
+                foreach (var cluster in clusters)
+                {
+                    cluster.Clear();
+                }
+
                 // Assign each color to the nearest cluster center
                 foreach (var color in colors.Keys)
                 {
@@ -120,6 +128,10 @@ namespace Impressionist.Implementations
                 // Recompute the cluster centers
                 for (int i = 0; i < Math.Min(numClusters, clusterCount); i++)
                 {
+                    if (clusters[i].Count == 0)
+                    {
+                        continue;
+                    }
                     var sumX = 0f;
                     var sumY = 0f;
                     var sumZ = 0f;
@@ -136,7 +148,7 @@ namespace Impressionist.Implementations
                     var y = (sumY / count);
                     var z = (sumZ / count);
                     var newCenter = new Vector3(x, y, z);
-                    if (!newCenter.Equals(centers[i]))
+                    if (newCenter != centers[i])
                     {
                         centers[i] = newCenter;
                         changed = true;
@@ -188,10 +200,10 @@ namespace Impressionist.Implementations
                         if (currentDistance < minDistance)
                         {
                             minDistance = currentDistance;
-                        }
-                        accumulatedDistances += minDistance * minDistance;
-                        accDistances[vectorId] = accumulatedDistances;
+                        } 
                     }
+                    accumulatedDistances += minDistance * minDistance;
+                    accDistances[vectorId] = accumulatedDistances;
                 }
                 float targetPoint = (float)random.NextDouble() * accumulatedDistances;
                 for (int vectorId = 0; vectorId < targetColor.Count; vectorId++)

@@ -60,23 +60,22 @@ namespace Impressionist.Implementations
             quantizer.Quantize(clusterCount);
             var index = targetColor.Keys.ToList();
             List<Vector3> quantizeResult;
-            if (colorIsDark)
-            {
-                quantizeResult = quantizer.GetPaletteResult(clusterCount);
-            }
-            else
-            {
-                quantizeResult = quantizer.GetPaletteResult(clusterCount);
-            }
+            quantizeResult = quantizer.GetPaletteResult(clusterCount);
             List<Vector3> result;
             if (quantizeResult.Count < clusterCount)
             {
                 var count = quantizeResult.Count;
                 result = new List<Vector3>();
-                for (int i = 0; i < clusterCount; i++)
+                if (count > 0)
                 {
-                    // You know, it is always hard to fullfill a palette when you have no enough colors. So please forgive me when placing the same color over and over again.
-                    result.Add(quantizeResult[i % count]);
+                    for (int i = 0; i < clusterCount; i++)
+                    {
+                        result.Add(quantizeResult[i % count]);
+                    }
+                }
+                else
+                {
+                    for (int i = 0; i < clusterCount; i++) result.Add(Vector3.Zero);
                 }
             }
             else
@@ -242,7 +241,13 @@ namespace Impressionist.Implementations
             public Dictionary<Vector3, int> GetPaletteResult()
             {
                 var result = new Dictionary<Vector3, int>();
-                if (!Children.Any(t => t != null)) result[Color] = Count;
+                if (!Children.Any(t => t != null))
+                {
+                    if (result.ContainsKey(Color))
+                        result[Color] += Count;
+                    else
+                        result[Color] = Count;
+                }
                 else
                 {
                     foreach (var child in Children)
@@ -299,9 +304,9 @@ namespace Impressionist.Implementations
             {
                 var totals = colors.Sum(c => c.Item2);
                 return new Vector3(
-                    x: (int)colors.Sum(c => c.Item1.X * c.Item2) / totals,
-                    y: (int)colors.Sum(c => c.Item1.Y * c.Item2) / totals,
-                    z: (int)colors.Sum(c => c.Item1.Z * c.Item2) / totals);
+                    x: colors.Sum(c => c.Item1.X * c.Item2) / totals,
+                    y: colors.Sum(c => c.Item1.Y * c.Item2) / totals,
+                    z: colors.Sum(c => c.Item1.Z * c.Item2) / totals);
             }
         }
     }

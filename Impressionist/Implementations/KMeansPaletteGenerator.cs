@@ -8,9 +8,7 @@ using System.Threading.Tasks;
 namespace Impressionist.Implementations
 {
     // I'm really appreciate wieslawsoltes's PaletteGenerator. Which make this project possible.
-    public class KMeansPaletteGenerator :
-        IThemeColorGenrator,
-        IPaletteGenrator
+    public class KMeansPaletteGenerator
     {
         public Task<ThemeColorResult> CreateThemeColor(Dictionary<Vector3, int> sourceColor, bool ignoreWhite = false, bool toLab = false)
         {

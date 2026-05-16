@@ -7,9 +7,7 @@ using System.Threading.Tasks;
 
 namespace Impressionist.Implementations
 {
-    public class OctTreePaletteGenerator :
-        IThemeColorGenrator,
-        IPaletteGenrator
+    public class OctTreePaletteGenerator
     {
         public Task<ThemeColorResult> CreateThemeColor(Dictionary<Vector3, int> sourceColor, bool ignoreWhite = false)
         {

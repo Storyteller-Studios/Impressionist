@@ -8,7 +8,7 @@ namespace Impressionist.Implementations
 {
     public static class AutoPaletteGenerator
     {
-        public static async Task<PaletteResult> CreatePalette(Dictionary<Vector3, int> sourceColor, int clusterCount, bool ignoreWhite = false, bool toLab = false, bool useKMeansPP = false)
+        public static async Task<PaletteResult>CreatePalette(Dictionary<Vector3, int> sourceColor, int clusterCount, bool ignoreWhite = false, bool toLab = false, bool useKMeansPP = false)
         {
             var kmeansTask = PaletteGenerators.KMeansPaletteGenerator.CreatePalette(sourceColor, clusterCount, ignoreWhite, toLab, useKMeansPP);
             var octTreeTask = PaletteGenerators.OctTreePaletteGenerator.CreatePalette(sourceColor, clusterCount, ignoreWhite);
@@ -20,8 +20,21 @@ namespace Impressionist.Implementations
 
             var kMeansDiversity = CalculateSpatialDiversity(kmeansResult.Palette);
             var octTreeDiversity = CalculateSpatialDiversity(octTreeResult.Palette);
-
-            return kMeansDiversity > octTreeDiversity ? kmeansResult : octTreeResult;
+            if(kmeansResult.PaletteIsDark != octTreeResult.PaletteIsDark)
+            {
+                return kMeansDiversity <= octTreeDiversity ? kmeansResult : octTreeResult;
+            }
+            else
+            {
+                if (kmeansResult.PaletteIsDark)
+                {
+                    return kMeansDiversity >= octTreeDiversity ? kmeansResult : octTreeResult;
+                }
+                else
+                {
+                    return kMeansDiversity <= octTreeDiversity ? kmeansResult : octTreeResult;
+                }
+            }
         }
 
         private static double CalculateSpatialDiversity(List<Vector3> palette)

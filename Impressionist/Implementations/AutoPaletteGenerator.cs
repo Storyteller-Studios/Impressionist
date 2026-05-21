@@ -8,32 +8,25 @@ namespace Impressionist.Implementations
 {
     public static class AutoPaletteGenerator
     {
-        public static async Task<PaletteResult>CreatePalette(Dictionary<Vector3, int> sourceColor, int clusterCount, bool ignoreWhite = false, bool toLab = false, bool useKMeansPP = false)
+        public static async Task <PaletteResult> CreatePalette(Dictionary<Vector3, int> sourceColor, int clusterCount, bool ignoreWhite = false, bool toLab = false, bool useKMeansPP = false)
         {
-            var kmeansTask = PaletteGenerators.KMeansPaletteGenerator.CreatePalette(sourceColor, clusterCount, ignoreWhite, toLab, useKMeansPP);
-            var octTreeTask = PaletteGenerators.OctTreePaletteGenerator.CreatePalette(sourceColor, clusterCount, ignoreWhite);
+            var theme = KMeansPaletteGenerator.CreateThemeColor(sourceColor,ignoreWhite, toLab);
+            var kmeansTask = KMeansPaletteGenerator.CreatePalette(sourceColor, clusterCount, theme,ignoreWhite, toLab, useKMeansPP);
+            var octTreeTask = OctTreePaletteGenerator.CreatePalette(sourceColor, clusterCount, theme,ignoreWhite);
 
             await Task.WhenAll(kmeansTask, octTreeTask);
 
             var kmeansResult = kmeansTask.Result;
             var octTreeResult = octTreeTask.Result;
-
             var kMeansDiversity = CalculateSpatialDiversity(kmeansResult.Palette);
             var octTreeDiversity = CalculateSpatialDiversity(octTreeResult.Palette);
-            if(kmeansResult.PaletteIsDark != octTreeResult.PaletteIsDark)
+            if (kmeansResult.PaletteIsDark)
             {
-                return kMeansDiversity <= octTreeDiversity ? kmeansResult : octTreeResult;
+                return kMeansDiversity >= octTreeDiversity ? kmeansResult : octTreeResult;
             }
             else
             {
-                if (kmeansResult.PaletteIsDark)
-                {
-                    return kMeansDiversity >= octTreeDiversity ? kmeansResult : octTreeResult;
-                }
-                else
-                {
-                    return kMeansDiversity <= octTreeDiversity ? kmeansResult : octTreeResult;
-                }
+                return kMeansDiversity <= octTreeDiversity || octTreeDiversity == 0 ? kmeansResult : octTreeResult;
             }
         }
 

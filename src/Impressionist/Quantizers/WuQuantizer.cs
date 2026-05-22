@@ -1,4 +1,5 @@
-﻿using System.Numerics;
+﻿using Impressionist.Helpers;
+using System.Numerics;
 
 namespace Impressionist.Quantizers;
 
@@ -21,7 +22,7 @@ public class WuQuantizer : IQuantizer
     private const int SideLength = 33;
     private const int TotalSize = 35937;
 
-    public QuantizerResult Quantize(List<ArgbColor> data, int colorCount, List<ArgbColor>? clusters = null)
+    public QuantizerResult Quantize(List<ArgbColor> data, int colorCount, List<ArgbColor>? startingClusters = null)
     {
         var colors = new Dictionary<ArgbColor, int>();
         foreach (var color in data)

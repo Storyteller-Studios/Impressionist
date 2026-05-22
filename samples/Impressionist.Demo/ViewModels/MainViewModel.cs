@@ -3,6 +3,7 @@ using Avalonia.Media.Imaging;
 using Avalonia.Platform;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Impressionist.Helpers;
 using Impressionist.Quantizers;
 using System;
 using System.Collections.Generic;

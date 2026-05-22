@@ -1,6 +1,6 @@
 ﻿using System.Numerics;
 
-namespace Impressionist;
+namespace Impressionist.Helpers;
 
 /// <summary>
 /// Represents a 32-bit ARGB (alpha, red, green, blue) color value.

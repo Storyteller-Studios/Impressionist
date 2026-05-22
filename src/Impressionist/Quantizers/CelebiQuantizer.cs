@@ -1,4 +1,6 @@
-﻿namespace Impressionist.Quantizers;
+﻿using Impressionist.Helpers;
+
+namespace Impressionist.Quantizers;
 
 public class CelebiQuantizer : IQuantizer
 {

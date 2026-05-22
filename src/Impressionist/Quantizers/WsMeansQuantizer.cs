@@ -1,4 +1,5 @@
-﻿using System.Numerics;
+﻿using Impressionist.Helpers;
+using System.Numerics;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Impressionist.Quantizers;
@@ -11,17 +12,31 @@ public class WsMeansQuantizer : IQuantizer
 {
     private const int MaxIterations = 5;
 
+    public bool UseLab { get; set; } = true;
+
     public QuantizerResult Quantize(
-        List<ArgbColor> data,
+        List<ArgbColor> dataColor,
         int colorCount,
-        List<ArgbColor>? clusters = null)
+        List<ArgbColor>? startingClusters = null)
     {
-        var pointCount = data.Count;
-        if (clusters is null || clusters.Count == 0)
+        var pointCount = dataColor.Count;
+        if (startingClusters is null || startingClusters.Count == 0)
         {
-            clusters = new List<ArgbColor>(colorCount);
+            startingClusters = new List<ArgbColor>(colorCount);
             var firstIndex = Random.Shared.Next(pointCount);
-            clusters.Add(data[firstIndex]);
+            startingClusters.Add(dataColor[firstIndex]);
+        }
+        
+        var clusters = new List<Vector3>(startingClusters.Count);
+        foreach(var cluster in startingClusters)
+        {
+            clusters.Add(ArgbToVector(cluster));
+        }
+
+        var data = new List<Vector3>(dataColor.Count);
+        foreach(var color in dataColor)
+        {
+            data.Add(ArgbToVector(color));
         }
 
         // K-Means++ initialization
@@ -34,7 +49,7 @@ public class WsMeansQuantizer : IQuantizer
                 var minDist = float.MaxValue;
                 foreach (var c in clusters)
                 {
-                    var dist = ArgbColor.DistanceSquared(data[i], c);
+                    var dist = Vector3.DistanceSquared(data[i], c);
                     minDist = Math.Min(minDist, dist);
                 }
 
@@ -69,7 +84,7 @@ public class WsMeansQuantizer : IQuantizer
             {
                 for (var j = i + 1; j < colorCount; j++)
                 {
-                    d[j, i] = d[i, j] = ArgbColor.DistanceSquared(clusters[i], clusters[j]);
+                    d[j, i] = d[i, j] = Vector3.DistanceSquared(clusters[i], clusters[j]);
                 }
             }
             var m = new int[colorCount][];
@@ -91,7 +106,7 @@ public class WsMeansQuantizer : IQuantizer
             for (var i = 0; i < pointCount; i++)
             {
                 var prevCluster = labels[i];
-                var prevDist = ArgbColor.DistanceSquared(data[i], clusters[prevCluster]);
+                var prevDist = Vector3.DistanceSquared(data[i], clusters[prevCluster]);
                 var minDist = prevDist;
                 var minIndex = m[prevCluster][0];
                 for (var j = 0; j < colorCount; j++)
@@ -99,7 +114,7 @@ public class WsMeansQuantizer : IQuantizer
 
                     var distBetweenCenters = d[prevCluster, m[prevCluster][j]];
                     if (distBetweenCenters >= 4 * prevDist) break;
-                    var dist = ArgbColor.DistanceSquared(data[i], clusters[m[prevCluster][j]]);
+                    var dist = Vector3.DistanceSquared(data[i], clusters[m[prevCluster][j]]);
                     if (dist < minDist)
                     {
                         minDist = dist;
@@ -113,31 +128,20 @@ public class WsMeansQuantizer : IQuantizer
 
             for (var j = 0; j < colorCount; j++)
             {
-                var sumA = 0;
-                var sumR = 0;
-                var sumG = 0;
-                var sumB = 0;
+                var sum = Vector3.Zero;
                 var pointsCount = 0;
                 for (var i = 0; i < pointCount; i++)
                 {
                     if (labels[i] == j)
                     {
-                        sumA += data[i].Alpha;
-                        sumR += data[i].Red;
-                        sumG += data[i].Green;
-                        sumB += data[i].Blue;
+                        sum += data[i];
                         pointsCount++;
                     }
                 }
                 if (pointsCount > 0)
                 {
-                    var newCluster = new ArgbColor(
-                        (byte)(sumA / pointsCount),
-                        (byte)(sumR / pointsCount),
-                        (byte)(sumG / pointsCount),
-                        (byte)(sumB / pointsCount)
-                    );
-                    if (ArgbColor.DistanceSquared(clusters[j], newCluster) > 0.01f)
+                    var newCluster = sum / pointsCount;
+                    if (Vector3.DistanceSquared(clusters[j], newCluster) > 0.01f)
                     {
                         hasConverged = false;
                     }
@@ -153,13 +157,27 @@ public class WsMeansQuantizer : IQuantizer
         var dic = new Dictionary<ArgbColor, int>(colorCount);
         for (var i = 0; i < colorCount; i++)
         {
-            dic[clusters[i]] = 0;
+            dic[VectorToArgb(clusters[i])] = 0;
         }
         for (var i = 0; i < pointCount; i++)
         {
-            dic[clusters[labels[i]]]++;
+            dic[VectorToArgb(clusters[labels[i]])]++;
         }
 
         return new QuantizerResult(dic);
+    }
+    private Vector3 ArgbToVector(ArgbColor color)
+    {
+        if (UseLab)
+            return ColorUtils.LabFromArgb(color);
+        else
+            return new Vector3(color.Red, color.Green, color.Blue);
+    }
+    private ArgbColor VectorToArgb(Vector3 v)
+    {
+        if (UseLab)
+            return ColorUtils.ArgbFromLab(v);
+        else
+            return new ArgbColor(255, (byte)v.X, (byte)v.Y, (byte)v.Z);
     }
 }

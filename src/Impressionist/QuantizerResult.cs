@@ -1,4 +1,5 @@
-﻿using System.Numerics;
+﻿using Impressionist.Helpers;
+using System.Numerics;
 
 namespace Impressionist;
 

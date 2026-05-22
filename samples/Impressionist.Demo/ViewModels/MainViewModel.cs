@@ -92,38 +92,37 @@ public partial class MainViewModel : ObservableObject
 
         var clusterCount = Math.Min(ColorsCount, colors.Count);
         var quantized = _quantizer.Quantize(colors, clusterCount)
-            .Colors
+            .Colors;
+        var scored = Score.CalculateScore(quantized)
             .Select(ToColorItem)
-            .OrderByDescending(static item => item.Count)
             .ToArray();
+        
 
         Colors.Clear();
-        foreach (var item in quantized)
+        foreach (var item in scored)
         {
             Colors.Add(item);
         }
     }
-    private static QuantizedColorItem ToColorItem(KeyValuePair<ArgbColor, int> kvp)
+    private static QuantizedColorItem ToColorItem(ArgbColor argbColor)
     {
-        var vector = kvp.Key;
-        var count = kvp.Value;
+        var vector = argbColor;
         var color = Color.FromRgb(
             (byte)Math.Clamp((int)MathF.Round(vector.Red), 0, 255),
             (byte)Math.Clamp((int)MathF.Round(vector.Green), 0, 255),
             (byte)Math.Clamp((int)MathF.Round(vector.Blue), 0, 255));
 
-        return new QuantizedColorItem(color, count);
+        return new QuantizedColorItem(color);
     }
 
     public sealed class QuantizedColorItem
     {
-        public QuantizedColorItem(Color color, int count)
+        public QuantizedColorItem(Color color)
         {
             Color = color;
             Brush = new SolidColorBrush(color);
             Hex = $"#{color.R:X2}{color.G:X2}{color.B:X2}";
             Luminance = color.R * 0.2126d + color.G * 0.7152d + color.B * 0.0722d;
-            Count = count;
         }
 
         public Color Color { get; }
@@ -133,7 +132,5 @@ public partial class MainViewModel : ObservableObject
         public string Hex { get; }
 
         public double Luminance { get; }
-
-        public int Count { get; set; }
     }
 }

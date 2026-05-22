@@ -38,7 +38,7 @@ public readonly struct Matrix3x3 : IEquatable<Matrix3x3>
         0.0f, 0.0f, 0.0f,
         0.0f, 0.0f, 0.0f);
 
-    public double this[int row, int col]
+    public float this[int row, int col]
     {
         get
         {

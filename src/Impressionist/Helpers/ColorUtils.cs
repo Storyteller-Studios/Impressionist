@@ -135,10 +135,10 @@ public static class ColorUtils
     /// </summary>
     /// <param name="argb">ARGB color.</param>
     /// <returns>L* value (0-100).</returns>
-    internal static double LstarFromArgb(ArgbColor argb)
+    internal static float LstarFromArgb(ArgbColor argb)
     {
         var y = XyzFromArgb(argb).Y;
-        return 116.0 * LabF(y / 100.0) - 16.0;
+        return 116.0f * LabF(y / 100.0f) - 16.0f;
     }
 
     /// <summary>
@@ -163,10 +163,10 @@ public static class ColorUtils
 
     internal static float Linearized(byte rgbComponent)
     {
-        var normalized = rgbComponent / 255.0;
-        return normalized <= 0.040449936
-            ? (float)(normalized / 12.92 * 100.0)
-            : (float)(Math.Pow((normalized + 0.055) / 1.055, 2.4) * 100.0);
+        var normalized = rgbComponent / 255.0f;
+        return normalized <= 0.040449936f
+            ? (normalized / 12.92f * 100.0f)
+            : (MathF.Pow((normalized + 0.055f) / 1.055f, 2.4f) * 100.0f);
     }
 
     internal static Vector3 Linearized(ArgbColor argb)
@@ -174,15 +174,15 @@ public static class ColorUtils
         return new Vector3(Linearized(argb.Red), Linearized(argb.Green), Linearized(argb.Blue));
     }
 
-    internal static byte Delinearized(double linearComponent)
+    internal static byte Delinearized(float linearComponent)
     {
-        var normalized = linearComponent / 100.0;
+        var normalized = linearComponent / 100.0f;
         var delinearized =
-            normalized <= 0.0031308
-                ? normalized * 12.92
-                : 1.055 * Math.Pow(normalized, 1.0 / 2.4) - 0.055;
+            normalized <= 0.0031308f
+                ? normalized * 12.92f
+                : 1.055f * MathF.Pow(normalized, 1.0f / 2.4f) - 0.055f;
         return (byte)
-            Math.Round(Math.Clamp(delinearized * 255.0, 0.0, 255.0), MidpointRounding.AwayFromZero);
+            Math.Clamp(MathF.Round(delinearized * 255.0f, MidpointRounding.AwayFromZero), 0.0f, 255.0f);
     }
 
     internal static ArgbColor Delinearized(Vector3 linearRgb)
@@ -200,11 +200,11 @@ public static class ColorUtils
         return new Vector3(LabF(t.X), LabF(t.Y), LabF(t.Z));
     }
 
-    private static float LabF(double t)
+    private static float LabF(float t)
     {
-        const double e = 216.0 / 24389.0;
-        const double kappa = 24389.0 / 27.0;
-        return (float)(t > e ? Math.Pow(t, 1.0 / 3.0) : (kappa * t + 16) / 116);
+        const float e = 216.0f / 24389.0f;
+        const float kappa = 24389.0f / 27.0f;
+        return t > e ? MathF.Pow(t, 1.0f / 3.0f) : (kappa * t + 16.0f) / 116.0f;
     }
 
     private static Vector3 LabInvf(Vector3 ft)
@@ -214,9 +214,9 @@ public static class ColorUtils
 
     private static float LabInvf(float ft)
     {
-        const double e = 216.0 / 24389.0;
-        const double kappa = 24389.0 / 27.0;
+        const float e = 216.0f / 24389.0f;
+        const float kappa = 24389.0f / 27.0f;
         var ft3 = ft * ft * ft;
-        return (float)(ft3 > e ? ft3 : (116 * ft - 16) / kappa);
+        return ft3 > e ? ft3 : (116.0f * ft - 16.0f) / kappa;
     }
 }

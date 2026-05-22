@@ -29,7 +29,11 @@ public partial class MainViewModel : ObservableObject
 
 
     [ObservableProperty]
-    public partial ObservableCollection<QuantizedColorItem> Colors { get; set; } = [];
+    [NotifyPropertyChangedFor(nameof(Colors))]
+    public partial List<QuantizedColorItem> ColorItems { get; set; } = [];
+
+
+    public List<Color> Colors => ColorItems.Select(i => i.Color).ToList();
 
     [RelayCommand]
     public void LoadImage(string path)
@@ -95,14 +99,10 @@ public partial class MainViewModel : ObservableObject
             .Colors;
         var scored = Score.CalculateScore(quantized)
             .Select(ToColorItem)
-            .ToArray();
-        
+            .ToList();
 
-        Colors.Clear();
-        foreach (var item in scored)
-        {
-            Colors.Add(item);
-        }
+
+        ColorItems = scored;
     }
     private static QuantizedColorItem ToColorItem(ArgbColor argbColor)
     {

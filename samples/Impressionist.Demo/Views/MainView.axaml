@@ -2,6 +2,7 @@
     x:Class="Impressionist.Demo.Views.MainView"
     xmlns="https://github.com/avaloniaui"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="using:Impressionist.Demo.Controls"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:vm="using:Impressionist.Demo.ViewModels"
@@ -17,6 +18,7 @@
         Margin="16"
         RowDefinitions="Auto,Auto,*,Auto"
         RowSpacing="16">
+
         <TextBlock
             FontSize="24"
             FontWeight="SemiBold"
@@ -34,9 +36,7 @@
                 Maximum="64"
                 Minimum="1"
                 Value="{Binding ColorsCount, Mode=TwoWay}" />
-            <Button
-                Command="{Binding QuantizeCommand}"
-                Content="Quantize" />
+            <Button Command="{Binding QuantizeCommand}" Content="Quantize" />
         </StackPanel>
 
         <Grid
@@ -47,9 +47,11 @@
                 Name="DropArea"
                 Grid.Column="0"
                 Background="{DynamicResource ButtonBackground}">
-                <Grid RowDefinitions="*,Auto" RowSpacing="12">
-                    <Image Source="{Binding Image, Mode=OneWay}" Stretch="Uniform" />
-                </Grid>
+                <controls:ShaderEffectControl
+                    x:Name="ShaderControl"
+                    Colors="{Binding Colors}"
+                    IsEnableAnimation="True"
+                    PerformanceMode="HighQuality" />
             </Border>
 
             <Border
@@ -59,21 +61,23 @@
                 BorderThickness="1"
                 CornerRadius="8">
                 <ScrollViewer>
-                    <ItemsControl ItemsSource="{Binding Colors}">
-                        <ItemsControl.ItemTemplate>
-                            <DataTemplate x:DataType="vm:MainViewModel+QuantizedColorItem">
-                                <StackPanel
-                                    Margin="0,0,12,12"
-                                    Spacing="8">
-                                    <Border
-                                        Height="32"
-                                        Background="{Binding Brush}"
-                                        CornerRadius="6" />
-                                    <TextBlock HorizontalAlignment="Center" Text="{Binding Hex}" />
-                                </StackPanel>
-                            </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                    </ItemsControl>
+                    <StackPanel Spacing="8">
+                        <Image Source="{Binding Image, Mode=OneWay}" Stretch="Uniform" />
+                        <ItemsControl ItemsSource="{Binding ColorItems}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate x:DataType="vm:MainViewModel+QuantizedColorItem">
+                                    <StackPanel Spacing="8">
+                                        <Border
+                                            Height="32"
+                                            Background="{Binding Brush}"
+                                            CornerRadius="6" />
+                                        <TextBlock HorizontalAlignment="Center" Text="{Binding Hex}" />
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+
                 </ScrollViewer>
             </Border>
         </Grid>

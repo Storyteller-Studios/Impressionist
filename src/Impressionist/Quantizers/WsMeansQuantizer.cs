@@ -113,19 +113,30 @@ public class WsMeansQuantizer : IQuantizer
 
             for (var j = 0; j < colorCount; j++)
             {
-                var sum = ArgbColor.Zero;
+                var sumA = 0;
+                var sumR = 0;
+                var sumG = 0;
+                var sumB = 0;
                 var pointsCount = 0;
                 for (var i = 0; i < pointCount; i++)
                 {
                     if (labels[i] == j)
                     {
-                        sum += data[i];
+                        sumA += data[i].Alpha;
+                        sumR += data[i].Red;
+                        sumG += data[i].Green;
+                        sumB += data[i].Blue;
                         pointsCount++;
                     }
                 }
                 if (pointsCount > 0)
                 {
-                    var newCluster = sum / pointsCount;
+                    var newCluster = new ArgbColor(
+                        (byte)(sumA / pointsCount),
+                        (byte)(sumR / pointsCount),
+                        (byte)(sumG / pointsCount),
+                        (byte)(sumB / pointsCount)
+                    );
                     if (ArgbColor.DistanceSquared(clusters[j], newCluster) > 0.01f)
                     {
                         hasConverged = false;

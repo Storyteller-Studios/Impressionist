@@ -26,11 +26,11 @@ namespace Impressionist.Demo.Views
 
         private async void OpenImageButton_OnClick(object? sender, RoutedEventArgs e)
         {
-            if (VisualRoot is not TopLevel topLevel || DataContext is not MainViewModel viewModel)
+            if (DataContext is not MainViewModel viewModel)
             {
                 return;
             }
-
+            var topLevel = TopLevel.GetTopLevel(this)!;
             var files = await topLevel.StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
             {
                 AllowMultiple = false,

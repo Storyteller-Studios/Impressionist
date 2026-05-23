@@ -21,7 +21,7 @@ public partial class MainViewModel : ObservableObject
     private readonly IQuantizer _quantizer = new CelebiQuantizer();
 
     [ObservableProperty]
-    public partial int ColorsCount { get; set; } = 2;
+    public partial int ColorsCount { get; set; } = 32;
 
 
     [ObservableProperty]
@@ -47,7 +47,6 @@ public partial class MainViewModel : ObservableObject
         }
         Image = new Bitmap(path);
     }
-
 
     [RelayCommand]
     private void Quantize()
@@ -107,6 +106,12 @@ public partial class MainViewModel : ObservableObject
 
         ColorItems = scored;
     }
+
+    partial void OnImageChanged(Bitmap? value)
+    {
+        Quantize();
+    }
+
     private static QuantizedColorItem ToColorItem(ArgbColor argbColor)
     {
         var vector = argbColor;
@@ -263,18 +268,12 @@ uniform vec4 iColor2;
 uniform vec4 iColor3;
 uniform int iColorCount;
 
-// ==========================================
-// OKLab 颜色空间转换函数
-// ==========================================
-
-// 1. RGB 转 OKLab
+// RGB 转 OKLab
 vec3 rgb2oklab(vec3 c) {
-    // 基础的线性近似矩阵（假设输入已经是线性 RGB，若原本是 sRGB，理想情况下需先做 Gamma 逆校正）
     float l = 0.4122214708 * c.r + 0.5363325363 * c.g + 0.0514459929 * c.b;
     float m = 0.2119034982 * c.r + 0.6806995451 * c.g + 0.1073969566 * c.b;
     float s = 0.0883024619 * c.r + 0.2817188376 * c.g + 0.6299787005 * c.b;
     
-    // 核心的非线性映射（开立方根）
     float l_ = pow(max(l, 0.0), 1.0 / 3.0);
     float m_ = pow(max(m, 0.0), 1.0 / 3.0);
     float s_ = pow(max(s, 0.0), 1.0 / 3.0);
@@ -286,13 +285,12 @@ vec3 rgb2oklab(vec3 c) {
     );
 }
 
-// 2. OKLab 转 RGB
+// OKLab 转 RGB
 vec3 oklab2rgb(vec3 c) {
     float l_ = c.x + 0.3963377774 * c.y + 0.2158037573 * c.z;
     float m_ = c.x - 0.1055613458 * c.y - 0.0638541728 * c.z;
     float s_ = c.x - 0.0894841775 * c.y - 1.2914855480 * c.z;
     
-    // 逆映射（立方）
     float l = l_ * l_ * l_;
     float m = m_ * m_ * m_;
     float s = s_ * s_ * s_;
@@ -303,10 +301,6 @@ vec3 oklab2rgb(vec3 c) {
         -0.0041960863 * l - 0.7034186147 * m + 1.7076147010 * s
     );
 }
-
-// ==========================================
-// 基础数学与噪声函数
-// ==========================================
 
 mat2 Rot(float a)
 {
@@ -374,10 +368,6 @@ vec3 getColor(int index) {
     }
 }
 
-// ==========================================
-// 主渲染函数
-// ==========================================
-
 vec4 main(vec2 fragCoord) {
     vec2 uv = fragCoord/iResolution.xy;
     float ratio = iResolution.x / iResolution.y;
@@ -399,13 +389,12 @@ vec4 main(vec2 fragCoord) {
     tuv.x += sin(tuv.y*frequency+speed)/amplitude;
     tuv.y += sin(tuv.x*frequency*1.5+speed)/(amplitude*0.5);
     
-    // 1. 获取原始 RGB 颜色，并立刻转为 OKLab 空间
     vec3 labYellow   = rgb2oklab(getColor(0));
     vec3 labDeepBlue = rgb2oklab(getColor(1));
     vec3 labRed      = rgb2oklab(getColor(2));
     vec3 labBlue     = rgb2oklab(getColor(3));
     
-    // 2. 在 OKLab 空间内进行色彩混合（此时色彩的亮度和色调变化非常均匀，不会产生灰脏的死色）
+    // 在 OKLab 空间内进行混合
     float mixFactor1 = smoothstep(-0.3, 0.2, (tuv * Rot(radians(-5.0))).x);
     vec3 layer1 = mix(labYellow, labDeepBlue, mixFactor1);
     
@@ -414,10 +403,9 @@ vec4 main(vec2 fragCoord) {
     float mixFactor2 = smoothstep(0.5, -0.3, tuv.y);
     vec3 finalCompLab = mix(layer1, layer2, mixFactor2);
     
-    // 3. 将混合完成的最终 OKLab 颜色还原回 RGB 以供显示器输出
+    // 还原回 RGB
     vec3 col = oklab2rgb(finalCompLab);
     
-    // 防止转换潜在的溢出，做一次规范化裁剪
     col = clamp(col, 0.0, 1.0);
     
     return vec4(col, 1.0);

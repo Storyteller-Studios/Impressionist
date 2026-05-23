@@ -8,10 +8,12 @@ namespace Impressionist;
 
 public class Score
 {
-    private struct ScoredHct(Hct hct, double score) : IComparable<ScoredHct>
+    private struct ScoredHct(Hct hct, double chromaScore, double weightScore) : IComparable<ScoredHct>
     {
         public Hct Hct = hct;
-        public double Score = score;
+        public readonly double Score => ChromaScore + WeightScore;
+        public readonly double ChromaScore = chromaScore;
+        public readonly double WeightScore = weightScore;
 
         public int CompareTo(ScoredHct other)
         {
@@ -19,12 +21,18 @@ public class Score
         }
     }
 
-    private const double TargetChroma = 48.0; // A1 Chroma
     private const double WeightProportion = 0.7;
-    private const double WeightChromaAbove = 0.3;
-    private const double WeightChromaBelow = 0.1;
-    private const double CutoffChroma = 5.0;
-    private const double CutoffExcitedProportion = 0.01;
+
+    private static double GetChromaScore(Hct color)
+    {
+        var chroma = color.Chroma;
+        return chroma switch
+        {
+            < 16 => chroma * 0.05,
+            < 48 => 16 * 0.05 + (chroma - 16) * 0.5,
+            _ => 16 * 0.05 + (48 - 16) * 0.5 + (chroma - 48) * 0.4
+        };
+    }
 
     public static List<ArgbColor> CalculateScore(
         Dictionary<ArgbColor, int> colorsToPopulation,
@@ -71,14 +79,10 @@ public class Score
             var hue = (int)
                 MathUtils.SanitizeDegrees(Math.Round(hct.Hue, MidpointRounding.AwayFromZero));
             var proportion = hueExcitedProportions[hue];
-            if (filter && (hct.Chroma < CutoffChroma || proportion <= CutoffExcitedProportion))
-                continue;
 
             var proportionScore = proportion * 100.0 * WeightProportion;
-            var chromaWeight = hct.Chroma < TargetChroma ? WeightChromaBelow : WeightChromaAbove;
-            var chromaScore = (hct.Chroma - TargetChroma) * chromaWeight;
-            var score = proportionScore + chromaScore;
-            scoredHcts.Add(new ScoredHct(hct, score));
+            var chromaScore = GetChromaScore(hct);
+            scoredHcts.Add(new ScoredHct(hct, chromaScore, proportionScore));
         }
 
         // Sorted so that colors with higher scores come first.
@@ -89,32 +93,30 @@ public class Score
         // the colors with the largest distribution of hues possible. Starting at
         // 90 degrees(maximum difference for 4 colors) then decreasing down to a
         // 15 degree minimum.
-        List<Hct> chosenColors = [];
-        for (var differenceDegrees = 90; differenceDegrees >= 15; differenceDegrees--)
+        List<ScoredHct> chosenColors = [];
+        foreach(var scoredHct in scoredHcts)
         {
-            chosenColors.Clear();
-            foreach (var entry in scoredHcts)
+            if(chosenColors.Count >= desired)
             {
-                var hct = entry.Hct;
-                var hasDuplicateHue = chosenColors.Any(chosenHct =>
-                    MathUtils.DifferenceDegrees(hct.Hue, chosenHct.Hue) < differenceDegrees
-                );
-                if (!hasDuplicateHue)
-                    chosenColors.Add(hct);
-
-                if (chosenColors.Count >= desired)
-                    break;
-            }
-
-            if (chosenColors.Count >= desired)
                 break;
+            }
+            if (chosenColors.Count >= 2 && chosenColors.Last().ChromaScore - scoredHct.ChromaScore >= chosenColors.Last().ChromaScore *0.6)
+            {
+                break;
+            }
+            if (chosenColors.Count == 1 && chosenColors.Last().ChromaScore - scoredHct.ChromaScore >= chosenColors.Last().ChromaScore * 0.6)
+                continue;
+            chosenColors.Add(scoredHct);
         }
+
+        //chosenColors = SpreadIfColorsTooSimilar(chosenColors);
 
         List<ArgbColor> colors = [];
         if (!chosenColors.Any())
             colors.Add(fallbackColorARGB.Value);
 
-        colors.AddRange(chosenColors.Select(chosenHct => chosenHct.Argb));
+        colors.AddRange(chosenColors.Select(chosenHct => chosenHct.Hct.Argb));
         return colors;
     }
+
 }

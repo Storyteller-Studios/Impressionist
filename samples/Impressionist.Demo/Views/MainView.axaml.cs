@@ -18,7 +18,7 @@ namespace Impressionist.Demo.Views
         {
             InitializeComponent();
 
-            
+            DataContext = new MainViewModel();
             DragDrop.SetAllowDrop(this, true);
             AddHandler(DragDrop.DropEvent, DropArea_OnDrop);
             AddHandler(DragDrop.DragOverEvent, DropArea_OnDragOver);

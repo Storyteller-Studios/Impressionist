@@ -31,12 +31,13 @@
             <Button
                 Name="OpenImageButton"
                 Click="OpenImageButton_OnClick"
-                Content="打开图片" />
+                Content="Open..." />
             <NumericUpDown
                 Maximum="64"
                 Minimum="1"
-                Value="{Binding ColorsCount, Mode=TwoWay}" />
-            <Button Command="{Binding QuantizeCommand}" Content="Quantize" />
+                Value="{CompiledBinding ColorsCount,
+                                        Mode=TwoWay}" />
+            <Button Command="{CompiledBinding QuantizeCommand}" Content="Quantize" />
         </StackPanel>
 
         <Grid
@@ -49,10 +50,10 @@
                 Background="{DynamicResource ButtonBackground}">
                 <controls:ShaderEffectControl
                     x:Name="ShaderControl"
-                    Colors="{Binding Colors}"
+                    Colors="{CompiledBinding Colors}"
                     IsEnableAnimation="True"
                     PerformanceMode="HighQuality"
-                    ShaderCode="{Binding ShaderCode}" />
+                    ShaderCode="{CompiledBinding ShaderCode}" />
             </Border>
 
             <Border
@@ -63,21 +64,21 @@
                 CornerRadius="8">
                 <ScrollViewer>
                     <StackPanel Spacing="8">
-                        <Image Source="{Binding Image, Mode=OneWay}" Stretch="Uniform" />
-                        <ItemsControl ItemsSource="{Binding ColorItems}">
+                        <Image Source="{CompiledBinding Image, Mode=OneWay}" Stretch="Uniform" />
+                        <ItemsControl ItemsSource="{CompiledBinding ColorItems}">
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate x:DataType="vm:MainViewModel+QuantizedColorItem">
                                     <StackPanel Spacing="8">
                                         <Border
                                             Height="32"
-                                            Background="{Binding Brush}"
+                                            Background="{CompiledBinding Brush}"
                                             CornerRadius="6" />
-                                        <TextBlock HorizontalAlignment="Center" Text="{Binding Hex}" />
+                                        <TextBlock HorizontalAlignment="Center" Text="{CompiledBinding Hex}" />
                                     </StackPanel>
                                 </DataTemplate>
                             </ItemsControl.ItemTemplate>
                         </ItemsControl>
-                        <TextBox x:Name="ShaderCode " Text="{Binding ShaderCode,Mode=TwoWay}"/> 
+                        <TextBox x:Name="ShaderCode " Text="{CompiledBinding ShaderCode, Mode=TwoWay}" />
 
                     </StackPanel>
 

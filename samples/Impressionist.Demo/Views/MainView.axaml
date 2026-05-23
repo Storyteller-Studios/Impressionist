@@ -51,7 +51,8 @@
                     x:Name="ShaderControl"
                     Colors="{Binding Colors}"
                     IsEnableAnimation="True"
-                    PerformanceMode="HighQuality" />
+                    PerformanceMode="HighQuality"
+                    ShaderCode="{Binding ShaderCode}" />
             </Border>
 
             <Border
@@ -76,6 +77,8 @@
                                 </DataTemplate>
                             </ItemsControl.ItemTemplate>
                         </ItemsControl>
+                        <TextBox x:Name="ShaderCode " Text="{Binding ShaderCode,Mode=TwoWay}"/> 
+
                     </StackPanel>
 
                 </ScrollViewer>

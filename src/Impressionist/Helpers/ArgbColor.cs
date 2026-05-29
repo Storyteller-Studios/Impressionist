@@ -35,6 +35,10 @@ public struct ArgbColor : IEquatable<ArgbColor>
     {
     }
 
+    public ArgbColor(Vector4 v) : this((byte)v.X, (byte)v.Y, (byte)v.Z, (byte)v.W)
+    {
+    }
+
     public void Deconstruct(out byte alpha, out byte red, out byte green, out byte blue)
     {
         alpha = Alpha;
